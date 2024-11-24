@@ -7,23 +7,67 @@ info:
 
 servers:
   - url: http://localhost:8000/api/v1
-    description: Production server
+    description: Localhost server
 
 paths:
-  /users/{id}:
+  /user/{id}:
     summary: Rappresentazione di un utente
     description: La risorsa rappresenta un utente univocamente. Ogni utente è identificato da un id.
     get: 
       summary: Ritorna il singolo utente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID dell'utente
       responses:
         "200":
           description: Singolo utente
           content:
             application/json:
-              schema: 
-                type: string
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  
+  /user/{id}/reports:
+    get:
+      summary: Ritorna tutte le segnalazioni di un utente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID dell'utente
+      responses:
+        "200":
+          description: Lista delle segnalazioni associate all'utente
+          content:
+            application/json:
+              schema:
+                type: array
                 items:
-                  type: string
+                  $ref: "#/components/schemas/Report"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /users:
+    summary: Rappresentazione della lista di utenti
+    description: In chiamata GET ritorna la lista di tutti gli utenti registrati, in POST crea un nuovo utente
+    get:
+      summary: Lista degli utenti
+      responses:
+        "200":
+          description: Lista degli utenti
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
     post:
       summary: Crea un nuovo utente
       requestBody:
@@ -36,6 +80,59 @@ paths:
       responses:
         "201":
           description: Utente creato
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /reports:
+    summary: Gestione delle segnalazioni
+    description: Creazione in POST di una nuova segnalazione e restituzione in GET di tutte le segnalazioni
+    post:
+      summary: Creazione nuova segnalazione
+      requestBody:
+        description: Segnalazione da creare
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Report"
+      responses:
+        "201":
+          description: Segnalazione creata
+        "400":
+          $ref: "#/components/responses/BadRequest"
+    get:
+      summary: Lista delle segnalazioni
+      responses:
+        "200":
+          description: Lista delle segnalazioni
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Report"
+
+  /report/{id}:
+    summary: Rappresentazione di una segnalazione
+    description: La risorsa rappresenta una segnalazione univocamente.
+    get: 
+      summary: Ritorna la singola segnalazione
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID della segnalazione
+      responses:
+        "200":
+          description: Singola segnalazione
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
 components:
   schemas:
@@ -58,3 +155,56 @@ components:
           type: string
         password:
           type: string
+    Report:
+      type: object
+      required:
+        - id
+        - user
+        - typology
+        - notes
+        - location
+      properties:
+        id:
+          type: integer
+        user:
+          type: integer
+        typology:
+          type: string
+          enum: [Furto, Aggressione, Molestia, Soggetto armato, Soggetto alterato, Altro]
+        notes:
+          type: string
+        location:
+          type: string
+    UserReport:
+      type: object
+      required:
+        - user
+        - report
+      properties:
+        user:
+          type: integer
+          description: ID dell'utente
+        report:
+          type: integer
+          description: ID del report
+  responses:
+    NotFound:
+      description: Risorsa non trovata
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Risorsa non trovata
+    BadRequest:
+      description: Richiesta non valida
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Parametri non validi
