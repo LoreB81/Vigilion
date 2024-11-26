@@ -1,0 +1,32 @@
+{
+  "name": "vigilion",
+  "version": "1.0.0",
+  "description": "Progetto Vigilion - Ingegneria del Software",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "start": "node index.js",
+    "start_local": "npm run dev",
+    "dev": "node -r dotenv/config index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LoreB81/ProgettoIngSoft.git"
+  },
+  "author": "Filippo Protto, Lorenzo Brigo, Giuseppe Scarciolla",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LoreB81/ProgettoIngSoft/issues"
+  },
+  "homepage": "https://github.com/LoreB81/ProgettoIngSoft#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "google-auth-library": "^9.15.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.11.0",
+    "mongoose": "^8.8.2",
+    "package": "^1.0.1"
+  }
+}
