@@ -10,7 +10,7 @@ servers:
     description: Localhost server
 
 paths:
-  /user/{id}:
+  /users/{id}:
     summary: Rappresentazione di un utente
     description: La risorsa rappresenta un utente univocamente. Ogni utente è identificato da un id.
     get: 
@@ -20,7 +20,7 @@ paths:
           in: path
           required: true
           schema:
-            type: integer
+            type: string
           description: ID dell'utente
       responses:
         "200":
@@ -31,16 +31,16 @@ paths:
                 $ref: "#/components/schemas/User"
         "404":
           $ref: "#/components/responses/NotFound"
-  
-  /user/{id}/reports:
+
+  /userreports:
     get:
       summary: Ritorna tutte le segnalazioni di un utente
       parameters:
-        - name: id
-          in: path
+        - name: userId
+          in: query
           required: true
           schema:
-            type: integer
+            type: string
           description: ID dell'utente
       responses:
         "200":
@@ -53,6 +53,24 @@ paths:
                   $ref: "#/components/schemas/Report"
         "404":
           $ref: "#/components/responses/NotFound"
+    post:
+      summary: Crea una relazione tra utente e report
+      requestBody:
+        description: Relazione utente-report da creare
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserReport"
+      responses:
+        "201":
+          description: Relazione creata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserReport"
+        "400":
+          $ref: "#/components/responses/BadRequest"
 
   /users:
     summary: Rappresentazione della lista di utenti
@@ -112,7 +130,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/Report"
 
-  /report/{id}:
+  /reports/{id}:
     summary: Rappresentazione di una segnalazione
     description: La risorsa rappresenta una segnalazione univocamente.
     get: 
@@ -134,6 +152,45 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /authentication:
+    post:
+      summary: Autenticazione dell'utente
+      requestBody:
+        description: Credenziali per l'autenticazione
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: Email dell'utente
+                password:
+                  type: string
+                  description: Password dell'utente
+      responses:
+        "200":
+          description: Autenticazione riuscita
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: Token JWT per l'autenticazione
+        "401":
+          description: Credenziali non valide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Credenziali non valide
+
 components:
   schemas:
     User:
@@ -146,7 +203,7 @@ components:
         - password
       properties:
         id:
-          type: integer
+          type: string
         firstname:
           type: string
         lastname:
@@ -163,11 +220,14 @@ components:
         - typology
         - notes
         - location
+        - upvote
+        - downvote
       properties:
         id:
           type: integer
         user:
-          type: integer
+          type: string
+          description: ID dell'utente
         typology:
           type: string
           enum: [Furto, Aggressione, Molestia, Soggetto armato, Soggetto alterato, Altro]
@@ -175,6 +235,12 @@ components:
           type: string
         location:
           type: string
+        upvote:
+          type: integer
+          description: Numero di upvote ricevuti
+        downvote:
+          type: integer
+          description: Numero di downvote ricevuti
     UserReport:
       type: object
       required:
@@ -182,7 +248,7 @@ components:
         - report
       properties:
         user:
-          type: integer
+          type: string
           description: ID dell'utente
         report:
           type: integer
