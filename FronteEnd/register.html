@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--./tailwindcss -i input.css -o output.css --minify-->
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="style/output.css" rel="stylesheet">
+        <title>Registrazione</title>
+    </head>
+    <body>
+        <div class="grid justify-items-center pt-8">        
+            <img src="media/logo.png" class="w-1/6 min-w-40"></img>
+        </div>
+        <div class="grid justify-items-center gap-y-2 pt-10">
+            <input type="text" placeholder="Nome" name="nfield" id="nfield" class="rounded-full border-2 w-80">
+            <input type="text" placeholder="Cognome" name="surfield" id="surfield" class="rounded-full border-2 w-80">
+            <select name="cirfield" id="cirfield" class="rounded-full border-2 w-80">
+                <option>Circoscrizione</option>
+            </select>
+            <input type="email" placeholder="E-mail" name="emfield" id="emfield" class="rounded-full border-2 w-80">
+            <input type="password" placeholder="Password" name="pswfield" id="pswfield" class="rounded-full border-2 w-80">
+            <input type="password" placeholder="Conferma Password" name="rpswfield" id="rpswfield" class="rounded-full border-2 w-80">
+            <button class="border-black border-2 rounded-full mt-10 bg-green-500 text-white font-bold p-3 w-40">Registrati</button>
+        </div>
+    </body>
+</html>

@@ -4,3 +4,5 @@
 # Directory dei moduli di node da installare separatamente
 node_modules/
 jspm_modules/
+
+.exe
