@@ -22,7 +22,37 @@ app.use(express.urlencoded({ extended: true }));
  */
 app.use(cors());
 
-// TODO: inserire file front-end, authentication routing e middleware, resource routing
+/**
+ * Serve front-end static files
+ */
+const FRONTEND = process.env.FRONTEND || Path.join( __dirname, '..', 'node_modules', 'easylibvue', 'dist' );
+app.use('/VIgilion/', express.static( FRONTEND ));
+
+// If process.env.FRONTEND folder does not contain index.html then use the one from static
+app.use('/', express.static('static')); // expose also this folder
+
+app.use((req,res,next) => {
+    console.log(req.method + ' ' + req.url)
+    next()
+})
+
+/**
+ * Authentication routing and middleware
+ */
+app.use('/api/v1/authentication', authentication);
+
+// Protect booklendings endpoint
+// access is restricted only to authenticated users
+// a valid token must be provided in the request
+app.use('/api/v1/userreports', tokenChecker);
+//app.use('/api/v1/students/me', tokenChecker);
+
+/**
+ * Resource routing
+ */
+app.use('/api/v1/reports', report);
+app.use('/api/v1/users', user);
+app.use('/api/v1/userreport', userReport);
 
 /* Default 404 handler */
 app.use((req, res) => {
