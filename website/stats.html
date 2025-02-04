@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--./tailwindcss -i input.css -o output.css --minify-->
+<html lang="it">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vergilion</title>
+    <link href="style/output.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="bg-white">
+        <!-- Header -->
+        <div class="bg-green-500 flex justify-between items-center p-4">
+            <div class="text-white font-bold text-lg flex items-center">
+                <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+                <span>Statistiche</span>
+            </div>
+            <button class="text-white text-3xl">&#9776;</button>
+        </div>
+        
+        <!-- Titolo -->
+        <h2 class="text-center text-xl font-bold my-6">Statistiche</h2>
+        
+        <!-- Form Filtri -->
+        <div class="px-6 space-y-4 flex flex-col items-center">
+            <select name="perfield" id="perfield" class="rounded-full border-2 w-80">
+                <option>Periodo</option>
+            </select>
+            <select name="tipfield" id="tipfield" class="rounded-full border-2 w-80">
+                <option>Tipologia</option>
+            </select>
+            <select name="cirfield" id="cirfield" class="rounded-full border-2 w-80">
+                <option>Circoscrizione</option>
+            </select>
+        </div>
+        
+        <!-- Pulsante Applica -->
+        <div class="flex justify-center my-6">
+            <button class="bg-green-600 text-white font-bold py-2 px-6 rounded-full text-lg shadow-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500">Applica</button>
+        </div>
+        <br>
+    </div>
+</body>
+</html>

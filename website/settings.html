@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!--./tailwindcss -i input.css -o output.css --minify-->
+<html lang="it">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Impostazioni</title>
+        <link href="style/output.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-100">
+        <div class="bg-white">
+            <!-- Header -->
+            <div class="bg-green-500 flex justify-between items-center p-4">
+                <div class="text-white font-bold text-lg flex items-center">
+                    <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+                    <span>Impostazioni</span>
+                </div>
+                <button class="text-white text-3xl">&#9776;</button>
+            </div>
+            <br>
+            
+            <!-- Bottoni delle impostazioni -->
+            <div class="px-6 space-y-4 flex flex-col items-center">
+                <button class="w-80 border border-gray-400 text-gray-700 font-semibold py-3 rounded-full shadow-sm hover:bg-gray-200">Modifica password</button>
+                <button class="w-80 border border-gray-400 text-gray-700 font-semibold py-3 rounded-full shadow-sm hover:bg-gray-200">Modifica circoscrizione di residenza</button>
+                <button class="w-80 border border-gray-400 text-gray-700 font-semibold py-3 rounded-full shadow-sm hover:bg-gray-200">Notifiche</button>
+            </div>
+            
+            <!-- Logout -->
+            <div class="flex justify-center my-6">
+                <button class="bg-red-600 text-white font-bold py-2 px-6 rounded-full text-lg shadow-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500">Logout</button>
+            </div>
+            <br>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<!--./tailwindcss -i input.css -o output.css --minify-->
+<html lang="it">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="style/output.css" rel="stylesheet">
+        <title>Segnalazione</title>
+    </head>
+    <body class="bg-gray-100">
+        <div class="flex justify-center items-center"></div>
+            <div class="bg-white shadow-lg relative overflow-hidden w-full h-5/6 min-h-screen">
+                <!-- Header -->
+                <div class="bg-green-500 flex justify-between items-center p-4">
+                    <div class="text-white font-bold text-lg flex items-center">
+                        <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+                        <span>Segnalazione</span>
+                    </div>
+                    <button class="text-white text-3xl">&#9776;</button>
+                </div>
+        
+                <!-- Map Placeholder -->
+                <div class="p-4">
+                    <label for="mappa" class="block text-gray-700 font-medium mb-2">Zona</label>
+                    <div id="mappa" class="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-300 shadow-sm">
+                        <span class="text-gray-500">Map Placeholder</span>
+                    </div>
+                </div>
+        
+                <!-- Form -->
+                <div class="p-4">
+                    <!-- Tipologia -->
+                    <div class="mb-4">
+                        <label for="tipologia" class="block text-gray-700 font-medium mb-2">Tipologia</label>
+                        <select id="tipologia" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                            <option value="">Seleziona una tipologia</option>
+                            <option value="1">Tipo 1</option>
+                            <option value="2">Tipo 2</option>
+                            <option value="3">Tipo 3</option>
+                        </select>
+                    </div>
+        
+                    <!-- Note -->
+                    <div class="mb-4">
+                        <label for="note" class="block text-gray-700 font-medium mb-2">Note</label>
+                        <textarea id="note" rows="4" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none" placeholder="Inserisci note"></textarea>
+                    </div>
+        
+                    <!-- Submit Button -->
+                    <div class="flex justify-center">
+                        <button class="bg-red-600 text-white font-bold py-2 px-6 rounded-full text-lg shadow-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500">
+                            Invia
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <!--./tailwindcss -i input.css -o output.css --minify-->
-<html>
+<html lang="it">
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="style/output.css" rel="stylesheet">
         <title>Login</title>
     </head>
     <body>
+        <!--Header/Logo-->
         <div class="grid justify-items-center pt-8">        
             <img src="media/logo.png" class="w-1/6 min-w-40"></img>
         </div>
+        <!--Form-->
         <div class="grid justify-items-center gap-y-2 pt-10">
             <input type="email" placeholder="E-mail" name="emfield" id="emfield" class="rounded-full border-2 w-80">
             <input type="password" placeholder="Password" name="pswfield" id="pswfield" class="rounded-full border-2 w-80">
             <button class="border-2 rounded-full border-black w-80">Login con google temp</button>
             <p class="font-bold text-1xl pt-2">Nuovo utente?<a class="text-blue-600" href="register.html">Registrati qui!</a></p>
-            <button class="border-black border-2 rounded-full mt-10 bg-green-500 text-white font-bold p-3 w-40">Login</button>
+            <button class="border-black border-2 rounded-full mt-10 bg-green-500 hover:bg-green-700 text-white font-bold p-3 w-40">Login</button>
         </div>
     </body>
 </html>

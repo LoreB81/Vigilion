@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--./tailwindcss -i input.css -o output.css --minify-->
+<html lang="it">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Segnalazioni</title>
+        <link href="style/output.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-100">
+        <div class="bg-white">
+            <!-- Header -->
+            <div class="bg-green-500 flex justify-between items-center p-4">
+                <div class="text-white font-bold text-lg flex items-center">
+                    <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+                    <span>Lista Segnalazioni</span>
+                </div>
+                <button class="text-white text-3xl">&#9776;</button>
+            </div>
+            
+            <!-- Titolo -->
+            <h2 class="text-center text-xl font-bold my-4">Segnalazioni</h2>
+            
+            <!-- Filtro -->
+            <div class="px-4 space-y-2">
+                <div class="flex space-x-2">
+                    <input type="date" class="w-1/2 p-2 border rounded-lg shadow-sm">
+                    <input type="date" class="w-1/2 p-2 border rounded-lg shadow-sm">
+                </div>
+                <select class="w-full p-2 border rounded-lg shadow-sm">
+                    <option>Circoscrizione</option>
+                </select>
+                <select class="w-full p-2 border rounded-lg shadow-sm">
+                    <option>Tipologia</option>
+                </select>
+            </div>
+            
+            <!-- Lista Segnalazioni -->
+            <div id="rlist" class="p-4 space-y-4">
+                <!-- Segnalazione tipo -->
+                <div class="border rounded-lg p-3 shadow-sm">
+                    <div class="flex justify-between text-sm font-semibold">
+                        <span id="usname">Giuseppe S.</span>
+                        <span id="msgdate" class="text-gray-500">30/09/2024</span>
+                    </div>
+                    <p id="msgtxt" class="text-gray-700 text-sm">Aggressione da parte di 3 ragazzi nei pressi del centro storico ...</p>
+                    <div class="flex justify-end space-x-2 mt-2 text-green-600">
+                        <span id="like" class="flex items-center space-x-1"><button>👍</button><span>12</span></span>
+                        <span id="dislike" class="flex items-center space-x-1 text-red-600"><button>👎</button></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

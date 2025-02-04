@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--./tailwindcss -i input.css -o output.css --minify-->
+<html lang="it">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="style/output.css" rel="stylesheet">
+        <title>Vigilion</title>
+    </head>
+<body class="bg-gray-100">
+    <div class="flex justify-center items-center">
+        <div class="bg-white shadow-lg relative overflow-hidden w-full">
+            <!-- Header -->
+            <div class="bg-green-500 flex justify-between items-center p-4">
+                <div class="text-white font-bold text-lg flex items-center">
+                    <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+                    <span>Vigilion</span>
+                </div>
+                <div>
+                    <button class="text-white text-3xl">&#9776;</button>
+                </div>
+            </div>
+            <!-- Mappa -->
+            <div class="flex justify-center items-center p-4 relative">
+                <div id="mappa" class="w-5/12 min-w-80 h-96 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-300 shadow-sm">
+                    <span class="text-gray-500">Map Placeholder</span>
+                </div>
+            </div>
+            <br>
+            <br>
+            <!-- Bottone 112 -->
+            <div class="absolute bottom-0 w-full left-0 p-4 flex justify-center items-center">
+                <button class="bg-red-700 text-white font-bold py-2 rounded-full text-xl shadow-lg w-2/12 min-w-28 hover:bg-red-900">
+                    <span>&#9742;</span> 112
+                </button>
+            </div>
+    </div>
+</body>
+
+</html>
