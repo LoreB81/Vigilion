@@ -2,12 +2,12 @@
   "name": "vigilion",
   "version": "1.0.0",
   "description": "Progetto Vigilion - Ingegneria del Software",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "jest",
-    "start": "node index.js",
+    "start": "node ./app/server.js",
     "start_local": "npm run dev",
-    "dev": "node -r dotenv/config index.js"
+    "dev": "node -r dotenv/config ./app/server.js"
   },
   "repository": {
     "type": "git",

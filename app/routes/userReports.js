@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const UserReport = require('./models/userReport');
-const User = require('./models/user');
-const Report = require('./models/report');
+const UserReport = require('./../models/userReport.js');
+const User = require('./../models/user.js');
+const Report = require('./../models/report.js');
+
+/* TODO: change the requests to match the API */
 
 router.get('', async (req, res) => {
   let userreports;

@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const Report = require('./models/report');
+const Report = require('./../models/report.js');
+
+/* TODO: change the requests to match the API */
 
 router.get('', async (req, res) => {
   let reports = await Report.find({});
