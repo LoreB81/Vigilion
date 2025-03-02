@@ -233,8 +233,10 @@ components:
           enum: [Furto, Aggressione, Molestia, Soggetto armato, Soggetto alterato, Altro]
         notes:
           type: string
+          description: Descrizione della segnalazione
         location:
           type: string
+          description: Posizione della segnalazione (latitudine/longitudine)
         upvote:
           type: integer
           description: Numero di upvote ricevuti
