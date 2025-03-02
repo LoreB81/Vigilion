@@ -3,10 +3,13 @@ const router = express.Router();
 
 const userController = require('../controllers/userController.js');
 
+const fs = require('fs');
+const yaml = require('js-yaml');
+
 /* swagger imports and setup */
 
 const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require('../../swagger/aos3.yaml');
+const swaggerDocument = yaml.load(fs.readFileSync(__dirname + '/../../swagger/aos3.yaml', 'utf8'));
 
 router.use('/api/docs', swaggerUi.serve);
 router.get('/api-docs', swaggerUi.setup(swaggerDocument));
