@@ -3,44 +3,49 @@ const { v4: uuidv4 } = require('uuid');
 
 const getUserData = async (req, res) => {
   try {
+    /** querying the db using the id given in the request */
     const user = await User.findOne({ id: req.params.id });
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.status(200).json(user);
+    return res.status(200).json(user);
   } catch (err) {
-    res.status(500).json({ error: "Server error", details: err.message });
+    return res.status(500).json({ error: "Server error", details: err.message });
   }
 };
 
 const getUsersData = async (req, res) => {
   try {
+    /** querying the db without where clauses, so that all users are returned */
     const users = await User.find({});
 
     if (users.length === 0) {
       return res.status(404).json({ error: "No users found" });
     }
 
-    res.status(200).json(users);
+    return res.status(200).json(users);
   } catch (err) {
-    res.status(500).json({ error: "Server error", details: err.message });
+    return res.status(500).json({ error: "Server error", details: err.message });
   }
 };
 
 const registerUser = async (req, res) => {
   try {
+    /** looking if a user with the same email already exists */
     const existingUser = await User.findOne({ email: req.body.email });
     
     if (existingUser) {
       return res.status(400).json({ error: "Email already in use" });
     }
 
+    /** email validation */
     if (!checkIfEmailInString(req.body.email)) {
       return res.status(400).json({ error: "Invalid email" });
     }
 
+    /** password validation */
     if (!checkIfValidPassword(req.body.password)) {
       return res.status(400).json({ error: "Invalid password" });
     }
@@ -60,6 +65,7 @@ const registerUser = async (req, res) => {
   }
 };
 
+/** TODO: match the password validation with the requirements in D1 document */
 function checkIfValidPassword(password) {
   var re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   return re.test(password);

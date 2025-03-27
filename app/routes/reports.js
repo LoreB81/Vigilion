@@ -1,49 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const Report = require('./../models/report.js');
 
-/* TODO: change the requests to match the API */
+const reportController = require('../controllers/reportController.js');
 
-router.get('', async (req, res) => {
-  let reports = await Report.find({});
+const fs = require('fs');
+const yaml = require('js-yaml');
 
-  reports = reports.map((report) => {
-    return {
-      self: '/api/v1/reports/' + report.id
-    }
-  });
+/* swagger imports and setup */
 
-  res.status(200).json(reports);
-});
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = yaml.load(fs.readFileSync(__dirname + '/../../swagger/aos3.yaml', 'utf8'));
 
-router.use('/:id', async (req, res, next) => {
-  let report = await Report.findById(req.params.id).exec();
+router.use('/api/docs', swaggerUi.serve);
+router.get('/api-docs', swaggerUi.setup(swaggerDocument));
 
-  if (!report) {
-    res.status(404).send();
-    console.log('report not found');
-    return;
-  }
+/* routes */
 
-  req['report'] = report;
-  next();
-});
-
-router.get('/:id', async (req, res) => {
-  let report = req['report'];
-  res.status(200).json({
-    self: '/api/v1/reports/' + report.id
-  });
-});
-
-router.post('', async (req, res) => {
-  let report = new Report({});
-
-  report = await report.save();
-  let reportId = report.id;
-  console.log('report saved succesfully');
-
-  res.location('api/v1/reports/' + reportId).status(201).send();
-});
+router.get('/reports/:id', reportController.getSingleReport);
+router.get('/reports', reportController.getReports);
+router.post('/reports', reportController.createReport);
 
 module.exports = router;

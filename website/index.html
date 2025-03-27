@@ -4,6 +4,14 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="style/output.css" rel="stylesheet">
+
+        <!-- include leaflet css and js to render the map -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+            integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+            crossorigin=""/>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
         <title>Vigilion</title>
     </head>
 <body class="bg-gray-100">
@@ -13,7 +21,7 @@
             <div class="bg-green-500 flex justify-between items-center p-4">
                 <div class="text-white font-bold text-lg flex items-center">
                     <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
-                    <span>Vigilion</span>
+                    <a href="index.html"><span>Vigilion</span></a>
                 </div>
                 <div>
                     <button class="text-white text-3xl">&#9776;</button>
@@ -22,9 +30,43 @@
             <!-- Mappa -->
             <div class="flex justify-center items-center p-4 relative">
                 <div id="mappa" class="w-5/12 min-w-80 h-96 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-300 shadow-sm">
-                    <span class="text-gray-500">Map Placeholder</span>
+                    <div id="map" style="width: 100%; height: 100%;"></div>
                 </div>
             </div>
+            
+            <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+            <script>
+                function initializeMap() {
+                    var mapContainer = document.getElementById("map");
+
+                    /** check div #map size */
+                    if (!mapContainer.offsetWidth || !mapContainer.offsetHeight) {
+                        console.error("div #map has invalid dimension at creation");
+                        return;
+                    }
+
+                    var map = L.map('map', { zoomControl: true }).setView([46.0704, 11.1215], 13);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+
+                    setTimeout(() => {
+                        map.invalidateSize();
+                    }, 500);
+                }
+
+                /** calls the function to initialize the map when the page is loaded */
+                document.addEventListener("DOMContentLoaded", function () {
+                    initializeMap();
+                });
+
+                /** calls the function to initialize the map when the page is resized */
+                window.addEventListener("resize", function () {
+                    initializeMap();
+                });
+            </script>
+
             <br>
             <br>
             <!-- Bottone 112 -->

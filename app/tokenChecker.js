@@ -22,3 +22,5 @@ const tokenChecker = function(req, res, next) {
 		}
 	})
 }
+
+module.exports = tokenChecker;

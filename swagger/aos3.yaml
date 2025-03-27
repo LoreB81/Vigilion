@@ -215,7 +215,6 @@ components:
     Report:
       type: object
       required:
-        - id
         - user
         - typology
         - notes
@@ -225,12 +224,14 @@ components:
       properties:
         id:
           type: integer
+          description: ID autogenerato della segnalazione
         user:
           type: string
           description: ID dell'utente
         typology:
           type: string
           enum: [Furto, Aggressione, Molestia, Soggetto armato, Soggetto alterato, Altro]
+          description: Tipologia della segnalazione
         notes:
           type: string
           description: Descrizione della segnalazione

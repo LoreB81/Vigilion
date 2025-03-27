@@ -18,7 +18,6 @@ async function verify(token) {
 }
 
 router.post('', async function(req, res) {
-
 	var user = {};
 
 	if (req.body.googleToken) {
@@ -32,7 +31,7 @@ router.post('', async function(req, res) {
 				password: 'default-google-password-to-be-changed'
 			});
 			await user.save().exec();
-			console.log('Student created after login with google');
+			console.log('User created after login with google');
 		}
 	}	else {
 		user = await User.findOne({
