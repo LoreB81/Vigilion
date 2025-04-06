@@ -24,9 +24,10 @@
                     <a href="index.html"><span>Vigilion</span></a>
                 </div>
                 <div>
-                    <button class="text-white text-3xl">&#9776;</button>
+                    <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
                 </div>
             </div>
+            <div id="menu-container" class="absolute top-16 right-4 bg-white shadow-lg border border-gray-200 rounded-lg hidden z-50 w-64 transition-opacity duration-300 opacity-0"></div>
             <!-- Mappa -->
             <div class="flex justify-center items-center p-4 relative">
                 <div id="mappa" class="w-5/12 min-w-80 h-96 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-300 shadow-sm">
@@ -75,7 +76,56 @@
                     <span>&#9742;</span> 112
                 </button>
             </div>
+        </div>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const menuButton = document.getElementById("menu-toggle");
+            const menuContainer = document.getElementById("menu-container");
+            let menuLoaded = false;
+    
+            menuButton.addEventListener("click", function (e) {
+                e.stopPropagation();
+    
+                if (menuContainer.classList.contains("hidden")) {
+                    if (!menuLoaded) {
+                        fetch("menu.html")
+                            .then(response => response.text())
+                            .then(html => {
+                                menuContainer.innerHTML = html;
+                                menuLoaded = true;
+                                menuContainer.classList.remove("hidden");
+                            })
+                            .catch(error => {
+                                console.error("Errore nel caricamento del menu:", error);
+                            });
+                    } else {
+                        menuContainer.classList.add("opacity-0");
+                        menuContainer.classList.remove("opacity-100");
+                        setTimeout(() => {
+                            menuContainer.classList.add("hidden");
+                        }, 300);
+                    }
+                } else {
+                    menuContainer.classList.add("opacity-0");
+                    menuContainer.classList.remove("opacity-100");
+                    setTimeout(() => {
+                        menuContainer.classList.add("hidden");
+                    }, 300);
+                }
+            });
+
+            document.addEventListener("click", function (e) {
+                if (!menuContainer.contains(e.target) && !menuButton.contains(e.target)) {
+                    menuContainer.classList.add("opacity-0");
+                    menuContainer.classList.remove("opacity-100");
+                    setTimeout(() => {
+                        menuContainer.classList.add("hidden");
+                    }, 300);
+                }
+            });
+        });
+    </script>    
 </body>
 
 </html>
