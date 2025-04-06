@@ -65,7 +65,7 @@ const registerUser = async (req, res) => {
   }
 };
 
-/** TODO: match the password validation with the requirements in D1 document */
+/* TODO: match the password validation with the requirements in D1 document */
 function checkIfValidPassword(password) {
   var re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
   return re.test(password);

@@ -32,12 +32,12 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /userreports:
+  /userreports/{id}:
     get:
       summary: Ritorna tutte le segnalazioni di un utente
       parameters:
         - name: userId
-          in: query
+          in: path
           required: true
           schema:
             type: string
