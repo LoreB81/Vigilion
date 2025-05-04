@@ -6,7 +6,7 @@ info:
   version: 1.0.0
 
 servers:
-  - url: http://localhost:8000/api/v1
+  - url: http://localhost:8000/api
     description: Localhost server
 
 paths:
@@ -201,6 +201,7 @@ components:
         - lastname
         - email
         - password
+        - circoscrizione
       properties:
         id:
           type: string

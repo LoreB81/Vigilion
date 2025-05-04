@@ -12,6 +12,7 @@
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
+        <script src="general.js"></script>
         <title>Vigilion</title>
     </head>
 <body class="bg-gray-100">
@@ -27,11 +28,12 @@
                     <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
                 </div>
             </div>
-            <div id="menu-container" class="absolute top-16 right-4 bg-white shadow-lg border border-gray-200 rounded-lg hidden z-50 w-64 transition-opacity duration-300 opacity-0"></div>
+            <div id="menu-container" class="fixed top-16 right-4 bg-white shadow-lg border border-gray-200 rounded-lg hidden opacity-0 transition-opacity duration-300 z-50 w-64"></div>
             <!-- Mappa -->
-            <div class="flex justify-center items-center p-4 relative">
-                <div id="mappa" class="w-5/12 min-w-80 h-96 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-300 shadow-sm">
-                    <div id="map" style="width: 100%; height: 100%;"></div>
+            <div class="p-4">
+                <label for="map" class="block text-gray-700 font-medium mb-2">Zona</label>
+                <div id="map" class="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-300 shadow-sm">
+                    <span class="text-gray-500">Map Placeholder</span>
                 </div>
             </div>
             
@@ -46,7 +48,7 @@
                         return;
                     }
 
-                    var map = L.map('map', { zoomControl: true }).setView([46.0704, 11.1215], 13);
+                    var map = L.map('map', { zoomControl: true }).setView([46.0704, 11.1215], 14);
 
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -83,49 +85,45 @@
             const menuButton = document.getElementById("menu-toggle");
             const menuContainer = document.getElementById("menu-container");
             let menuLoaded = false;
-    
+
             menuButton.addEventListener("click", function (e) {
                 e.stopPropagation();
-    
-                if (menuContainer.classList.contains("hidden")) {
-                    if (!menuLoaded) {
-                        fetch("menu.html")
-                            .then(response => response.text())
-                            .then(html => {
-                                menuContainer.innerHTML = html;
-                                menuLoaded = true;
-                                menuContainer.classList.remove("hidden");
-                            })
-                            .catch(error => {
-                                console.error("Errore nel caricamento del menu:", error);
-                            });
-                    } else {
-                        menuContainer.classList.add("opacity-0");
-                        menuContainer.classList.remove("opacity-100");
-                        setTimeout(() => {
-                            menuContainer.classList.add("hidden");
-                        }, 300);
-                    }
+
+                if (!menuLoaded) {
+                    fetch("menu.html")
+                        .then(response => response.text())
+                        .then(html => {
+                            menuContainer.innerHTML = html;
+                            menuLoaded = true;
+                            showMenu();
+                        })
+                        .catch(error => {
+                            console.error("Errore nel caricamento del menu:", error);
+                        });
                 } else {
-                    menuContainer.classList.add("opacity-0");
-                    menuContainer.classList.remove("opacity-100");
-                    setTimeout(() => {
-                        menuContainer.classList.add("hidden");
-                    }, 300);
+                    if (menuContainer.style.display == 'none') {
+                        showMenu();
+                    } else {
+                        hideMenu();
+                    }
                 }
             });
 
             document.addEventListener("click", function (e) {
                 if (!menuContainer.contains(e.target) && !menuButton.contains(e.target)) {
-                    menuContainer.classList.add("opacity-0");
-                    menuContainer.classList.remove("opacity-100");
-                    setTimeout(() => {
-                        menuContainer.classList.add("hidden");
-                    }, 300);
+                    hideMenu();
                 }
             });
+
+            function showMenu() {
+                menuContainer.style.display = 'block'
+            }
+
+            function hideMenu() {
+                menuContainer.style.display = 'none';
+            }
         });
-    </script>    
+    </script> 
 </body>
 
 </html>

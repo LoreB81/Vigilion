@@ -32,7 +32,7 @@ const getReports = async (req, res) => {
 
 const createReport = async (req, res) => {
   try {
-    /** checking if the required parameters are given in the request's body */
+    /** checking if the required parameters are given in the request body */
     if (!req.body.user || !req.body.typology || !req.body.notes || !req.body.location) {
       return res.status(400).json({ error: "Missing required fields" });
     }

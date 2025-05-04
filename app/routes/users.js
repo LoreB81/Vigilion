@@ -15,9 +15,8 @@ router.use('/api/docs', swaggerUi.serve);
 router.get('/api-docs', swaggerUi.setup(swaggerDocument));
 
 /* routes */
-
-router.get('/users/:id', userController.getUserData);
-router.get('/users', userController.getUsersData);
-router.post('/users', userController.registerUser);
+router.get('/:id', userController.getUserData);
+router.get('/', userController.getUsersData);
+router.post('/', userController.registerUser);
 
 module.exports = router;

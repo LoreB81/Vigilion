@@ -55,7 +55,8 @@ const registerUser = async (req, res) => {
       email: req.body.email,
       password: req.body.password,
       firstname: req.body.firstname,
-      lastname: req.body.lastname
+      lastname: req.body.lastname,
+      circoscrizione: req.body.circoscrizione
     });
 
     const savedUser = await newUser.save();

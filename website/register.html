@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="style/output.css" rel="stylesheet">
         <title>Registrazione</title>
+        <script src="general.js"></script>
     </head>
     <body>
         <div class="grid justify-items-center pt-8">        
@@ -14,12 +15,23 @@
             <input type="text" placeholder="Nome" name="nfield" id="nfield" class="rounded-full border-2 w-80">
             <input type="text" placeholder="Cognome" name="surfield" id="surfield" class="rounded-full border-2 w-80">
             <select name="cirfield" id="cirfield" class="rounded-full border-2 w-80">
-                <option>Circoscrizione</option>
+                <option>Gardolo</option>
+                <option>Meano</option>
+                <option>Bondone</option>
+                <option>Sardagna</option>
+                <option>Ravina-Romagnano</option>
+                <option>Argentario</option>
+                <option>Povo</option>
+                <option>Mattarello</option>
+                <option>Villazzano</option>
+                <option>Oltrefersina</option>
+                <option>San Giuseppe-Santa Chiara</option>
+                <option>Centro Storico-Piedicastello</option>
             </select>
             <input type="email" placeholder="E-mail" name="emfield" id="emfield" class="rounded-full border-2 w-80">
             <input type="password" placeholder="Password" name="pswfield" id="pswfield" class="rounded-full border-2 w-80">
             <input type="password" placeholder="Conferma Password" name="rpswfield" id="rpswfield" class="rounded-full border-2 w-80">
-            <button class="border-black border-2 rounded-full mt-10 bg-green-500 hover:bg-green-700 text-white font-bold p-3 w-40">Registrati</button>
+            <button class="border-black border-2 rounded-full mt-10 bg-green-500 hover:bg-green-700 text-white font-bold p-3 w-40" onclick="registerUser()">Registrati</button>
         </div>
     </body>
 </html>

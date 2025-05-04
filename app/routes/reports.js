@@ -7,7 +7,6 @@ const fs = require('fs');
 const yaml = require('js-yaml');
 
 /* swagger imports and setup */
-
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = yaml.load(fs.readFileSync(__dirname + '/../../swagger/aos3.yaml', 'utf8'));
 
@@ -15,9 +14,8 @@ router.use('/api/docs', swaggerUi.serve);
 router.get('/api-docs', swaggerUi.setup(swaggerDocument));
 
 /* routes */
-
-router.get('/reports/:id', reportController.getSingleReport);
-router.get('/reports', reportController.getReports);
-router.post('/reports', reportController.createReport);
+router.get('/:id', reportController.getSingleReport);
+router.get('/', reportController.getReports);
+router.post('/', reportController.createReport);
 
 module.exports = router;

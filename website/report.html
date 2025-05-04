@@ -5,6 +5,15 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="style/output.css" rel="stylesheet">
         <title>Segnalazione</title>
+        
+        <!-- include leaflet css and js to render the map -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+            integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+            crossorigin=""/>
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+        <script src="general.js"></script>
     </head>
     <body class="bg-gray-100">
         <div class="flex justify-center items-center"></div>
@@ -13,46 +22,146 @@
                 <div class="bg-green-500 flex justify-between items-center p-4">
                     <div class="text-white font-bold text-lg flex items-center">
                         <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
-                        <span>Segnalazione</span>
+                        <a href="index.html"><span>Segnalazione</span></a>
                     </div>
-                    <button class="text-white text-3xl">&#9776;</button>
+                    <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
                 </div>
+                <div id="menu-container" class="fixed top-16 right-4 bg-white shadow-lg border border-gray-200 rounded-lg hidden opacity-0 transition-opacity duration-300 z-50 w-64"></div>
         
-                <!-- Map Placeholder -->
-                <div class="p-4">
-                    <label for="mappa" class="block text-gray-700 font-medium mb-2">Zona</label>
-                    <div id="mappa" class="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-300 shadow-sm">
-                        <span class="text-gray-500">Map Placeholder</span>
+                <form id="data-form">
+                    <!-- Map Placeholder -->
+                    <div class="p-4">
+                        <label for="map" class="block text-gray-700 font-medium mb-2">Zona</label>
+                        <div id="map" class="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-300 shadow-sm">
+                            <span class="text-gray-500">Map Placeholder</span>
+                        </div>
                     </div>
-                </div>
-        
-                <!-- Form -->
-                <div class="p-4">
-                    <!-- Tipologia -->
-                    <div class="mb-4">
-                        <label for="tipologia" class="block text-gray-700 font-medium mb-2">Tipologia</label>
-                        <select id="tipologia" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
-                            <option value="">Seleziona una tipologia</option>
-                            <option value="1">Tipo 1</option>
-                            <option value="2">Tipo 2</option>
-                            <option value="3">Tipo 3</option>
-                        </select>
+                    
+                    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+                    <script>
+                        function initializeMap() {
+                            var mapContainer = document.getElementById("map");
+
+                            /** check div #map size */
+                            if (!mapContainer.offsetWidth || !mapContainer.offsetHeight) {
+                                console.error("div #map has invalid dimension at creation");
+                                return;
+                            }
+
+                            var map = L.map('map', { zoomControl: true }).setView([46.0704, 11.1215], 14);
+
+                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                            }).addTo(map);
+
+                            setTimeout(() => {
+                                map.invalidateSize();
+                            }, 500);
+
+                            map.on('click', function(e) {
+                                if (typeof marker !== 'undefined') {
+                                    map.removeLayer(marker);
+                                }
+
+                                marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map).openPopup();
+                                localStorage.setItem('position', JSON.stringify([e.latlng.lat, e.latlng.lng]));
+                            });
+                        }
+
+                        /** calls the function to initialize the map when the page is loaded */
+                        document.addEventListener("DOMContentLoaded", function () {
+                            initializeMap();
+                        });
+
+                        /** calls the function to initialize the map when the page is resized */
+                        window.addEventListener("resize", function () {
+                            initializeMap();
+                        });
+                    </script>
+            
+                    <!-- Form -->
+                    <div class="p-4">
+                        <!-- Tipologia -->
+                        <div class="mb-4">
+                            <label for="tipologia" class="block text-gray-700 font-medium mb-2">Tipologia</label>
+                            <select id="tipologia" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                                <option value="">Seleziona una tipologia</option>
+                                <option value="Furto">Furto</option>
+                                <option value="Aggressione">Aggressione</option>
+                                <option value="Molestia">Molestia</option>
+                                <option value="Soggetto armato">Soggetto armato</option>
+                                <option value="Soggetto alterato">Soggetto alterato</option>
+                                <option value="Altro">Altro</option>
+                            </select>
+                        </div>
+            
+                        <!-- Note -->
+                        <div class="mb-4">
+                            <label for="note" class="block text-gray-700 font-medium mb-2">Note</label>
+                            <textarea id="note" rows="4" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none" placeholder="Inserisci note"></textarea>
+                        </div>
+            
+                        <!-- Submit Button -->
+                        <div class="flex justify-center">
+                            <button onclick="createReport()" class="bg-red-600 text-white font-bold py-2 px-6 rounded-full text-lg shadow-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500">
+                                Invia
+                            </button>
+                        </div>
                     </div>
-        
-                    <!-- Note -->
-                    <div class="mb-4">
-                        <label for="note" class="block text-gray-700 font-medium mb-2">Note</label>
-                        <textarea id="note" rows="4" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none" placeholder="Inserisci note"></textarea>
-                    </div>
-        
-                    <!-- Submit Button -->
-                    <div class="flex justify-center">
-                        <button class="bg-red-600 text-white font-bold py-2 px-6 rounded-full text-lg shadow-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500">
-                            Invia
-                        </button>
-                    </div>
-                </div>
+                </form>
             </div>
         </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const menuButton = document.getElementById("menu-toggle");
+                const menuContainer = document.getElementById("menu-container");
+                let menuLoaded = false;
+    
+                menuButton.addEventListener("click", function (e) {
+                    e.stopPropagation();
+    
+                    if (!menuLoaded) {
+                        fetch("menu.html")
+                            .then(response => response.text())
+                            .then(html => {
+                                menuContainer.innerHTML = html;
+                                menuLoaded = true;
+                                showMenu();
+                            })
+                            .catch(error => {
+                                console.error("Errore nel caricamento del menu:", error);
+                            });
+                    } else {
+                        if (menuContainer.style.display == 'none') {
+                            showMenu();
+                        } else {
+                            hideMenu();
+                        }
+                    }
+                });
+    
+                document.addEventListener("click", function (e) {
+                    if (!menuContainer.contains(e.target) && !menuButton.contains(e.target)) {
+                        hideMenu();
+                    }
+                });
+    
+                function showMenu() {
+                    menuContainer.style.display = 'block'
+                }
+    
+                function hideMenu() {
+                    menuContainer.style.display = 'none';
+                }
+            });
+
+            /* if the user is not logged in, redirect to the login page */
+            document.addEventListener("DOMContentLoaded", function () {
+                if (!localStorage.getItem("id")) {
+                    alert("Per usare questa funzione, devi aver effettuato l'accesso");
+                    window.location.href = "login.html";
+                }
+            });
+        </script>
     </body>
 </html>
