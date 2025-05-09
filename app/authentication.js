@@ -51,7 +51,7 @@ router.post('', async function(req, res) {
 	
 	var payload = {
 		email: user.email,
-		password: user.password
+		id: user.id
 	}
 
 	var options = {
@@ -60,13 +60,48 @@ router.post('', async function(req, res) {
 
 	var token = jwt.sign(payload, process.env.SUPER_SECRET, options);
 
+	// Set HTTP-only cookie with the token
+	res.cookie('auth_token', token, {
+		httpOnly: true,
+		secure: process.env.NODE_ENV === 'production', // Only send cookie over HTTPS in production
+		sameSite: 'strict',
+		maxAge: 86400000 // 24 hours in milliseconds
+	});
+
 	res.json({
 		success: true,
-		message: 'Enjoy your token!',
-		token: token,
+		message: 'Login successful!',
 		email: user.email,
-		password: user.password,
-		self: "api/v1/" + user._id
+		id: user.id,
+		self: "api/users/" + user._id
+	});
+});
+
+// Add logout endpoint
+router.post('/logout', function(req, res) {
+	res.clearCookie('auth_token');
+	res.json({ success: true, message: 'Logged out successfully' });
+});
+
+// Add authentication check endpoint
+router.get('/check', function(req, res) {
+	const token = req.cookies.auth_token;
+	
+	if (!token) {
+		return res.json({ authenticated: false });
+	}
+
+	jwt.verify(token, process.env.SUPER_SECRET, function(err, decoded) {
+		if (err) {
+			return res.json({ authenticated: false });
+		}
+		res.json({ 
+			authenticated: true,
+			user: {
+				email: decoded.email,
+				id: decoded.id
+			}
+		});
 	});
 });
 

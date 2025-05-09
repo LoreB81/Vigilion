@@ -6,6 +6,11 @@
         <title>Impostazioni</title>
         <link href="style/output.css" rel="stylesheet">
         <script src="general.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                checkAuth();
+            });
+        </script>
     </head>
     <body class="bg-gray-100">
         <div class="bg-white">
@@ -28,7 +33,7 @@
             
             <!-- Logout -->
             <div class="flex justify-center my-6">
-                <button class="bg-red-600 text-white font-bold py-2 px-6 rounded-full text-lg shadow-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500">Logout</button>
+                <button onclick="logout()" class="bg-red-600 text-white font-bold py-2 px-6 rounded-full text-lg shadow-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500">Logout</button>
             </div>
             <br>
         </div>

@@ -1,6 +1,7 @@
 const Path = require('path');
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const app = express();
 
 /**
@@ -10,16 +11,20 @@ const user = require('./routes/users.js');
 const report = require('./routes/reports.js');
 const userreport = require('./routes/userReports.js');
 
+const authentication = require('./authentication.js');
+const tokenChecker = require('./tokenChecker.js');
+
 /**
  * Configure Express.js parsing middleware
  */
 const mongoose = require('mongoose');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // Configure CORS
 const corsOptions = {
-  origin: ['http://localhost:8000', 'http://127.0.0.1:8000'],
+  origin: process.env.NODE_ENV === 'production' ? 'https://yourdomain.com' : 'http://localhost:8000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -44,6 +49,12 @@ app.locals.db = mongoose.connect(
     console.log('The app is listening in port', process.env.PORT);
   });
 });
+
+/**
+ * Authentication routing and middleware
+ */
+app.use('/api/authentication', authentication);
+app.use('/api/reports', tokenChecker);
 
 /**
  * Resource routing

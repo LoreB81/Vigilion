@@ -10,8 +10,8 @@ function createReport() {
     headers: {
       'Content-Type': 'application/json'
     },
+    credentials: 'include',
     body: JSON.stringify({
-      user: localStorage.getItem('id'),
       typology: typology,
       notes: notes,
       location: locationString
@@ -56,6 +56,7 @@ function registerUser() {
     headers: {
       'Content-Type': 'application/json'
     },
+    credentials: 'include',
     body: JSON.stringify({
       firstname: firstname,
       lastname: lastname,
@@ -82,5 +83,69 @@ function registerUser() {
   .catch(error => {
     console.error('Errore durante la registrazione: ' + error.message);
     alert('Errore durante la registrazione: ' + error.message);
+  });
+}
+
+function login() {
+  const email = document.getElementById('emfield').value;
+  const password = document.getElementById('pswfield').value;
+
+  fetch('http://localhost:8000/api/authentication', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    credentials: 'include',
+    body: JSON.stringify({ email: email, password: password })
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(data => {
+        throw new Error(data.error || 'Credenziali non valide');
+      });
+    }
+    return response.json();
+  })
+  .then(function (data) {
+    if (data.success) {
+      window.location.href = 'index.html';
+    } else {
+      throw new Error(data.message || 'Errore durante il login');
+    }
+  })
+  .catch(error => {
+    console.error('Errore durante l\'autenticazione: ' + error.message);
+  });
+}
+
+function logout() {
+  fetch('http://localhost:8000/api/authentication/logout', {
+    method: 'POST',
+    credentials: 'include'
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      window.location.href = 'login.html';
+    }
+  })
+  .catch(error => {
+    console.error('Errore durante il logout: ' + error);
+  });
+}
+
+function checkAuth() {
+  fetch('http://localhost:8000/api/authentication/check', {
+    credentials: 'include'
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (!data.authenticated) {
+      window.location.href = 'login.html';
+    }
+  })
+  .catch(error => {
+    console.error('Errore durante il controllo dell\'autenticazione: ' + error);
+    window.location.href = 'login.html';
   });
 }

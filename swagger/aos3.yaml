@@ -10,6 +10,85 @@ servers:
     description: Localhost server
 
 paths:
+  /authentication:
+    post:
+      summary: Autenticazione dell'utente
+      description: Autentica l'utente e ritorna il token JWT
+      responses:
+        '200':
+          description: Token creato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: True se l'autenticazione è riuscita, false altrimenti
+                  token:
+                    type: string
+                    description: Token JWT per l'autenticazione
+        '401':
+          description: Credenziali non valide
+      requestBody:
+        description: Credenziali per l'autenticazione (email e password)
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  description: Email dell'utente
+                password:
+                  type: string
+                  description: Password dell'utente
+  /authentication/logout:
+    post:
+      summary: Logout dell'utente
+      description: Effettua il logout dell'utente cancellando il cookie di autenticazione
+      responses:
+        '200':
+          description: Logout effettuato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: True se il logout è riuscito
+                  message:
+                    type: string
+                    description: Messaggio di conferma del logout
+  /authentication/check:
+    get:
+      summary: Verifica autenticazione
+      description: Verifica se l'utente è autenticato controllando il cookie di autenticazione
+      responses:
+        '200':
+          description: Stato dell'autenticazione
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticated:
+                    type: boolean
+                    description: True se l'utente è autenticato
+                  user:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                        description: Email dell'utente autenticato
+                      id:
+                        type: string
+                        description: ID dell'utente autenticato
   /users/{id}:
     summary: Rappresentazione di un utente
     description: La risorsa rappresenta un utente univocamente. Ogni utente è identificato da un id.
@@ -151,45 +230,6 @@ paths:
                 $ref: "#/components/schemas/Report"
         "404":
           $ref: "#/components/responses/NotFound"
-
-  /authentication:
-    post:
-      summary: Autenticazione dell'utente
-      requestBody:
-        description: Credenziali per l'autenticazione
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  description: Email dell'utente
-                password:
-                  type: string
-                  description: Password dell'utente
-      responses:
-        "200":
-          description: Autenticazione riuscita
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  token:
-                    type: string
-                    description: Token JWT per l'autenticazione
-        "401":
-          description: Credenziali non valide
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Credenziali non valide
 
 components:
   schemas:
