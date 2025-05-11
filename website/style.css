@@ -1,0 +1,26 @@
+#menu-container {
+  position: fixed;
+  top: 56px;
+  right: 0;
+  width: 250px;
+  background-color: white;
+  transition: transform 0.3s ease-in-out;
+  z-index: 1000;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+  border-left: 1px solid #e5e7eb;
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+  transform: translateX(100%);
+  display: none;
+}
+
+#menu-container.open {
+  transform: translateX(0);
+  display: block;
+}
+
+html, body, #map {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}

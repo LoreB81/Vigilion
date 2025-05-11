@@ -4,7 +4,6 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="style/output.css" rel="stylesheet">
-        <title>Segnalazione</title>
         
         <!-- include leaflet css and js to render the map -->
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -19,6 +18,9 @@
                 checkAuth();
             });
         </script>
+        <link rel="stylesheet" href="style.css">
+
+        <title>Segnalazione</title>
     </head>
     <body class="bg-gray-100">
         <div class="flex justify-center items-center"></div>
@@ -31,56 +33,69 @@
                     </div>
                     <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
                 </div>
-                <div id="menu-container" class="fixed top-16 right-4 bg-white shadow-lg border border-gray-200 rounded-lg hidden opacity-0 transition-opacity duration-300 z-50 w-64"></div>
+                <div id="menu-container"></div>
         
                 <form id="data-form">
-                    <!-- Map Placeholder -->
-                    <div class="p-4">
-                        <label for="map" class="block text-gray-700 font-medium mb-2">Zona</label>
-                        <div id="map" class="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-300 shadow-sm">
-                            <span class="text-gray-500">Map Placeholder</span>
-                        </div>
+                    <!-- Mappa -->
+                    <div class="h-[50vh] flex justify-center items-center bg-gray-100">
+                        <div id="map" class="w-1/2 h-[50vh] bg-gray-300 rounded-lg shadow-md" style="height: 50vh;"></div>
                     </div>
                     
                     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
                     <script>
+                        function initializeMapWhenReady() {
+                            const mapContainer = document.getElementById("map");
+
+                            const waitForSize = () => {
+                                if (mapContainer.offsetWidth && mapContainer.offsetHeight) {
+                                    initializeMap();
+                                } else {
+                                    setTimeout(waitForSize, 100); // riprova tra 100ms
+                                }
+                            };
+
+                            waitForSize();
+                        }
+
                         function initializeMap() {
                             var mapContainer = document.getElementById("map");
 
                             /** check div #map size */
                             if (!mapContainer.offsetWidth || !mapContainer.offsetHeight) {
-                                console.error("div #map has invalid dimension at creation");
+                                console.error("div #map has invalid dimension at creation:", mapContainer.offsetWidth, mapContainer.offsetHeight);
                                 return;
                             }
 
-                            var map = L.map('map', { zoomControl: true }).setView([46.0704, 11.1215], 14);
+                            window.map = L.map('map', { zoomControl: true }).setView([46.0704, 11.1215], 14);
 
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            }).addTo(map);
+                            }).addTo(window.map);
 
                             setTimeout(() => {
-                                map.invalidateSize();
+                                window.map.invalidateSize();
                             }, 500);
 
-                            map.on('click', function(e) {
+                            window.map.on('click', function(e) {
                                 if (typeof marker !== 'undefined') {
-                                    map.removeLayer(marker);
+                                    window.map.removeLayer(marker);
                                 }
 
-                                marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map).openPopup();
+                                marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(window.map).openPopup();
                                 localStorage.setItem('position', JSON.stringify([e.latlng.lat, e.latlng.lng]));
                             });
                         }
 
                         /** calls the function to initialize the map when the page is loaded */
                         document.addEventListener("DOMContentLoaded", function () {
-                            initializeMap();
+                            initializeMapWhenReady();
                         });
 
                         /** calls the function to initialize the map when the page is resized */
                         window.addEventListener("resize", function () {
-                            initializeMap();
+                            if (window.map) {
+                                window.map.invalidateSize();
+                            }
                         });
                     </script>
             
@@ -90,7 +105,6 @@
                         <div class="mb-4">
                             <label for="tipologia" class="block text-gray-700 font-medium mb-2">Tipologia</label>
                             <select id="tipologia" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
-                                <option value="">Seleziona una tipologia</option>
                                 <option value="Furto">Furto</option>
                                 <option value="Aggressione">Aggressione</option>
                                 <option value="Molestia">Molestia</option>
@@ -121,13 +135,18 @@
                 const menuButton = document.getElementById("menu-toggle");
                 const menuContainer = document.getElementById("menu-container");
                 let menuLoaded = false;
-    
+
                 menuButton.addEventListener("click", function (e) {
                     e.stopPropagation();
-    
+
                     if (!menuLoaded) {
                         fetch("menu.html")
-                            .then(response => response.text())
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`Errore HTTP: ${response.status} ${response.statusText}`);
+                                }
+                                return response.text();
+                            })
                             .then(html => {
                                 menuContainer.innerHTML = html;
                                 menuLoaded = true;
@@ -137,26 +156,33 @@
                                 console.error("Errore nel caricamento del menu:", error);
                             });
                     } else {
-                        if (menuContainer.style.display == 'none') {
-                            showMenu();
-                        } else {
+                        if (menuContainer.classList.contains('open')) {
                             hideMenu();
+                        } else {
+                            showMenu();
                         }
                     }
                 });
-    
+
                 document.addEventListener("click", function (e) {
                     if (!menuContainer.contains(e.target) && !menuButton.contains(e.target)) {
                         hideMenu();
                     }
                 });
-    
+
                 function showMenu() {
-                    menuContainer.style.display = 'block'
+                    menuContainer.style.display = 'block';
+                    menuContainer.classList.add('open');
                 }
-    
+
                 function hideMenu() {
-                    menuContainer.style.display = 'none';
+                    menuContainer.classList.remove('open');
+                    if (!menuContainer.classList.contains('open')) {
+                        menuContainer.style.display = 'none';
+                        menuContainer.innerHTML = '';
+                    }
+
+                    menuLoaded = false;
                 }
             });
         </script>

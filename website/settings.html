@@ -3,7 +3,6 @@
 <html lang="it">
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Impostazioni</title>
         <link href="style/output.css" rel="stylesheet">
         <script src="general.js"></script>
         <script>
@@ -11,6 +10,9 @@
                 checkAuth();
             });
         </script>
+        <link rel="stylesheet" href="style.css">
+
+        <title>Impostazioni</title>
     </head>
     <body class="bg-gray-100">
         <div class="bg-white">
@@ -18,10 +20,13 @@
             <div class="bg-green-500 flex justify-between items-center p-4">
                 <div class="text-white font-bold text-lg flex items-center">
                     <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
-                    <span>Impostazioni</span>
+                    <a href="index.html"><span>Vigilion</span></a>
                 </div>
-                <button class="text-white text-3xl">&#9776;</button>
+                <div>
+                    <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
+                </div>
             </div>
+            <div id="menu-container"></div>
             <br>
             
             <!-- Bottoni delle impostazioni -->
@@ -37,5 +42,61 @@
             </div>
             <br>
         </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const menuButton = document.getElementById("menu-toggle");
+                const menuContainer = document.getElementById("menu-container");
+                let menuLoaded = false;
+
+                menuButton.addEventListener("click", function (e) {
+                    e.stopPropagation();
+
+                    if (!menuLoaded) {
+                        fetch("menu.html")
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`Errore HTTP: ${response.status} ${response.statusText}`);
+                                }
+                                return response.text();
+                            })
+                            .then(html => {
+                                menuContainer.innerHTML = html;
+                                menuLoaded = true;
+                                showMenu();
+                            })
+                            .catch(error => {
+                                console.error("Errore nel caricamento del menu:", error);
+                            });
+                    } else {
+                        if (menuContainer.classList.contains('open')) {
+                            hideMenu();
+                        } else {
+                            showMenu();
+                        }
+                    }
+                });
+
+                document.addEventListener("click", function (e) {
+                    if (!menuContainer.contains(e.target) && !menuButton.contains(e.target)) {
+                        hideMenu();
+                    }
+                });
+
+                function showMenu() {
+                    menuContainer.style.display = 'block';
+                    menuContainer.classList.add('open');
+                }
+
+                function hideMenu() {
+                    menuContainer.classList.remove('open');
+                    if (!menuContainer.classList.contains('open')) {
+                        menuContainer.style.display = 'none';
+                        menuContainer.innerHTML = '';
+                    }
+
+                    menuLoaded = false;
+                }
+            });
+        </script>
     </body>
 </html>

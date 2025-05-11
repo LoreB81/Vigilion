@@ -13,11 +13,13 @@
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
         <script src="general.js"></script>
+        <link rel="stylesheet" href="style.css">
+        
         <title>Vigilion</title>
     </head>
-<body class="bg-gray-100">
-    <div class="flex justify-center items-center">
-        <div class="bg-white shadow-lg relative overflow-hidden w-full">
+<body class="bg-gray-100 h-screen">
+    <div class="flex justify-center items-center h-screen">
+        <div class="bg-white shadow-lg relative overflow-hidden w-full min-h-screen">
             <!-- Header -->
             <div class="bg-green-500 flex justify-between items-center p-4">
                 <div class="text-white font-bold text-lg flex items-center">
@@ -28,45 +30,58 @@
                     <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
                 </div>
             </div>
-            <div id="menu-container" class="fixed top-16 right-4 bg-white shadow-lg border border-gray-200 rounded-lg hidden opacity-0 transition-opacity duration-300 z-50 w-64"></div>
+            <div id="menu-container" class="relative"></div>
+
             <!-- Mappa -->
-            <div class="p-4">
-                <label for="map" class="block text-gray-700 font-medium mb-2">Zona</label>
-                <div id="map" class="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-300 shadow-sm">
-                    <span class="text-gray-500">Map Placeholder</span>
-                </div>
+            <div class="h-[75vh] flex justify-center items-center bg-gray-100">
+                <div id="map" class="w-1/2 h-[75vh] bg-gray-300 rounded-lg shadow-md" style="height: 75vh;"></div>
             </div>
             
-            <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
             <script>
+                function initializeMapWhenReady() {
+                    const mapContainer = document.getElementById("map");
+
+                    const waitForSize = () => {
+                        if (mapContainer.offsetWidth && mapContainer.offsetHeight) {
+                            initializeMap();
+                        } else {
+                            setTimeout(waitForSize, 100); // riprova tra 100ms
+                        }
+                    };
+
+                    waitForSize();
+                }
+
                 function initializeMap() {
                     var mapContainer = document.getElementById("map");
 
                     /** check div #map size */
                     if (!mapContainer.offsetWidth || !mapContainer.offsetHeight) {
-                        console.error("div #map has invalid dimension at creation");
+                        console.error("div #map has invalid dimension at creation:", mapContainer.offsetWidth, mapContainer.offsetHeight);
                         return;
                     }
 
-                    var map = L.map('map', { zoomControl: true }).setView([46.0704, 11.1215], 14);
+                    window.map = L.map('map', { zoomControl: true }).setView([46.0704, 11.1215], 14);
 
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    }).addTo(map);
+                    }).addTo(window.map);
 
                     setTimeout(() => {
-                        map.invalidateSize();
+                        window.map.invalidateSize();
                     }, 500);
                 }
 
                 /** calls the function to initialize the map when the page is loaded */
                 document.addEventListener("DOMContentLoaded", function () {
-                    initializeMap();
+                    initializeMapWhenReady();
                 });
 
                 /** calls the function to initialize the map when the page is resized */
                 window.addEventListener("resize", function () {
-                    initializeMap();
+                    if (window.map) {
+                        window.map.invalidateSize();
+                    }
                 });
             </script>
 
@@ -91,7 +106,12 @@
 
                 if (!menuLoaded) {
                     fetch("menu.html")
-                        .then(response => response.text())
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`Errore HTTP: ${response.status} ${response.statusText}`);
+                            }
+                            return response.text();
+                        })
                         .then(html => {
                             menuContainer.innerHTML = html;
                             menuLoaded = true;
@@ -101,10 +121,10 @@
                             console.error("Errore nel caricamento del menu:", error);
                         });
                 } else {
-                    if (menuContainer.style.display == 'none') {
-                        showMenu();
-                    } else {
+                    if (menuContainer.classList.contains('open')) {
                         hideMenu();
+                    } else {
+                        showMenu();
                     }
                 }
             });
@@ -116,14 +136,20 @@
             });
 
             function showMenu() {
-                menuContainer.style.display = 'block'
+                menuContainer.style.display = 'block';
+                menuContainer.classList.add('open');
             }
 
             function hideMenu() {
-                menuContainer.style.display = 'none';
+                menuContainer.classList.remove('open');
+                if (!menuContainer.classList.contains('open')) {
+                    menuContainer.style.display = 'none';
+                    menuContainer.innerHTML = '';
+                }
+
+                menuLoaded = false;
             }
         });
-    </script> 
+    </script>
 </body>
-
 </html>
