@@ -3,6 +3,8 @@ const router = express.Router();
 const User = require('./models/user');
 const jwt = require('jsonwebtoken');
 const {OAuth2Client} = require('google-auth-library');
+const crypto = require('crypto');
+const { v4: uuidv4 } = require('uuid');
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
@@ -26,9 +28,14 @@ router.post('', async function(req, res) {
 
 		user = await User.findOne({ email: payload['email'] }).exec();
 		if (!user) {
+			const userId = uuidv4();
+			// Hash a default password for Google users
+			const defaultPassword = crypto.createHash('sha256').update('default-google-password-to-be-changed' + userId).digest('hex');
+			
 			user = new User({
+				id: userId,
 				email: payload['email'],
-				password: 'default-google-password-to-be-changed'
+				password: defaultPassword
 			});
 			await user.save().exec();
 			console.log('User created after login with google');
@@ -43,7 +50,11 @@ router.post('', async function(req, res) {
 			return;
 		}
 	
-		if (user.password != req.body.password) {
+		// Hash the input password with the user's id as salt
+		const hashedPassword = crypto.createHash('sha256').update(req.body.password + user.id).digest('hex');
+		
+		// Compare the hashed password with the one stored in the database
+		if (user.password !== hashedPassword) {
 			res.json({ success: false, message: 'Authentication failed. Wrong password.' });
 			return;
 		}

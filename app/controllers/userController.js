@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 
 const getUserData = async (req, res) => {
   try {
@@ -50,10 +51,16 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ error: "Invalid password" });
     }
 
+    // Generate UUID for the user
+    const userId = uuidv4();
+    
+    // Hash the password using SHA-256 with the UUID as salt
+    const hashedPassword = hashPassword(req.body.password, userId);
+
     const newUser = new User({
-      id: uuidv4(),
+      id: userId,
       email: req.body.email,
-      password: req.body.password,
+      password: hashedPassword,
       firstname: req.body.firstname,
       lastname: req.body.lastname,
       circoscrizione: req.body.circoscrizione
@@ -65,6 +72,16 @@ const registerUser = async (req, res) => {
     return res.status(500).json({ error: "Registration failed", details: err.message });
   }
 };
+
+/**
+ * Hash a password using SHA-256 with a user's UUID as salt
+ * @param {string} password - The plain text password
+ * @param {string} salt - The UUID to use as salt
+ * @returns {string} - The hashed password
+ */
+function hashPassword(password, salt) {
+  return crypto.createHash('sha256').update(password + salt).digest('hex');
+}
 
 /* TODO: match the password validation with the requirements in D1 document */
 function checkIfValidPassword(password) {
