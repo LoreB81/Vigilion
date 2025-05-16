@@ -162,28 +162,33 @@ function checkAuth() {
   });
 }
 
-function fetchLatestReports() {
-  fetch('http://localhost:8000/api/reports/latest', {
-    method: 'GET',
-    credentials: 'include'
-  })
-  .then(response => {
+async function fetchLatestReports() {
+  try {
+    const response = await fetch('http://localhost:8000/api/reports/latest', {
+      method: 'GET',
+      credentials: 'include'
+    });
+    
     if (!response.ok) {
       throw new Error('Errore nel recupero delle segnalazioni');
     }
-    return response.json();
-  })
-  .then(reports => {
+    
+    const reports = await response.json();
     displayReportsOnMap(reports);
-  })
-  .catch(error => {
+  } catch (error) {
     console.error('Errore nel recupero delle segnalazioni:', error);
-  });
+  }
 }
 
 function displayReportsOnMap(reports) {
   // Ensure the map is initialized
   if (!window.map) return;
+  
+  // Clear existing markers
+  if (window.markers) {
+    window.markers.forEach(marker => marker.remove());
+  }
+  window.markers = [];
   
   reports.forEach(report => {
     try {
@@ -193,20 +198,140 @@ function displayReportsOnMap(reports) {
       // Create a marker for each report
       const reportMarker = L.marker([location[0], location[1]]).addTo(window.map);
       
-      // Create popup content with report details
+      // Create popup content with report details and vote buttons
       const popupContent = `
-        <div>
-          <h3 class="font-bold">${report.typology}</h3>
-          <p>${report.notes}</p>
-          <p class="text-sm text-gray-600">Data: ${report.createdtime}</p>
-          <p class="text-sm text-gray-600">Voti: 👍 ${report.upvote} | 👎 ${report.downvote}</p>
+        <div class="p-2">
+          <h3 class="font-bold text-lg mb-2">${report.typology}</h3>
+          <p class="text-gray-700 mb-2">${report.notes}</p>
+          <p class="text-sm text-gray-600 mb-2">Data: ${report.createdtime}</p>
+          <div class="flex items-center space-x-4">
+            <button id="upvote-${report.id}" class="flex items-center space-x-1">
+              <span class="text-2xl">👍</span>
+              <span id="upvote-count-${report.id}">${report.upvote}</span>
+            </button>
+            <button id="downvote-${report.id}" class="flex items-center space-x-1">
+              <span class="text-2xl">👎</span>
+              <span id="downvote-count-${report.id}">${report.downvote}</span>
+            </button>
+          </div>
         </div>
       `;
       
       // Bind popup to marker
       reportMarker.bindPopup(popupContent);
+      
+      // Initialize vote buttons when popup opens
+      reportMarker.on('popupopen', () => {
+        initializeVoteButtons(report.id);
+      });
+      
+      window.markers.push(reportMarker);
     } catch (error) {
       console.error('Errore nella visualizzazione della segnalazione:', error);
     }
   });
+}
+
+async function handleVote(reportId, voteType) {
+  try {
+    const response = await fetch(`http://localhost:8000/api/reports/${reportId}/vote`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({ voteType })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to vote');
+    }
+
+    const data = await response.json();
+    console.log('Vote response:', data); // Debug log
+    updateVoteDisplay(reportId, data);
+  } catch (error) {
+    console.error('Error voting:', error);
+  }
+}
+
+async function getUserVote(reportId) {
+  try {
+    const response = await fetch(`http://localhost:8000/api/reports/${reportId}/user-vote`, {
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to get user vote');
+    }
+
+    const data = await response.json();
+    return data.voteType;
+  } catch (error) {
+    console.error('Error getting user vote:', error);
+    return null;
+  }
+}
+
+function updateVoteDisplay(reportId, data) {
+  console.log('Updating vote display for report:', reportId, 'with data:', data); // Debug log
+  
+  const upvoteBtn = document.querySelector(`#upvote-${reportId}`);
+  const downvoteBtn = document.querySelector(`#downvote-${reportId}`);
+  const upvoteCount = document.querySelector(`#upvote-count-${reportId}`);
+  const downvoteCount = document.querySelector(`#downvote-count-${reportId}`);
+
+  if (upvoteBtn && downvoteBtn && upvoteCount && downvoteCount) {
+    // Update counts
+    upvoteCount.textContent = data.upvotes;
+    downvoteCount.textContent = data.downvotes;
+
+    // Update button styles
+    upvoteBtn.classList.remove('text-blue-500', 'text-gray-400');
+    downvoteBtn.classList.remove('text-red-500', 'text-gray-400');
+
+    if (data.userVote === 'upvote') {
+      upvoteBtn.classList.add('text-blue-500');
+      downvoteBtn.classList.add('text-gray-400');
+    } else if (data.userVote === 'downvote') {
+      upvoteBtn.classList.add('text-gray-400');
+      downvoteBtn.classList.add('text-red-500');
+    } else {
+      upvoteBtn.classList.add('text-gray-400');
+      downvoteBtn.classList.add('text-gray-400');
+    }
+  } else {
+    console.error('Could not find vote elements for report:', reportId); // Debug log
+  }
+}
+
+// Function to initialize vote buttons for a report
+function initializeVoteButtons(reportId) {
+  console.log('Initializing vote buttons for report:', reportId); // Debug log
+  
+  const upvoteBtn = document.querySelector(`#upvote-${reportId}`);
+  const downvoteBtn = document.querySelector(`#downvote-${reportId}`);
+
+  if (upvoteBtn && downvoteBtn) {
+    upvoteBtn.addEventListener('click', () => handleVote(reportId, 'upvote'));
+    downvoteBtn.addEventListener('click', () => handleVote(reportId, 'downvote'));
+
+    // Get initial user vote state
+    getUserVote(reportId).then(voteType => {
+      console.log('Initial vote type for report:', reportId, 'is:', voteType); // Debug log
+      
+      if (voteType === 'upvote') {
+        upvoteBtn.classList.add('text-blue-500');
+        downvoteBtn.classList.add('text-gray-400');
+      } else if (voteType === 'downvote') {
+        upvoteBtn.classList.add('text-gray-400');
+        downvoteBtn.classList.add('text-red-500');
+      } else {
+        upvoteBtn.classList.add('text-gray-400');
+        downvoteBtn.classList.add('text-gray-400');
+      }
+    });
+  } else {
+    console.error('Could not find vote buttons for report:', reportId); // Debug log
+  }
 }

@@ -8,8 +8,7 @@ const app = express();
  * Routes import
  */
 const user = require('./routes/users.js');
-const report = require('./routes/reports.js');
-const userreport = require('./routes/userReports.js');
+const report = require('./routes/reportRoutes.js');
 
 const authentication = require('./authentication.js');
 const tokenChecker = require('./tokenChecker.js');

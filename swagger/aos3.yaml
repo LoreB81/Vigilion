@@ -248,6 +248,77 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
+  /reports/{id}/vote:
+    post:
+      summary: Vota una segnalazione
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID della segnalazione
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - voteType
+              properties:
+                voteType:
+                  type: string
+                  enum: [upvote, downvote]
+                  description: Tipo di voto
+      responses:
+        '200':
+          description: Voto registrato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  upvotes:
+                    type: integer
+                    description: Numero di upvote
+                  downvotes:
+                    type: integer
+                    description: Numero di downvote
+                  userVote:
+                    type: string
+                    enum: [upvote, downvote, null]
+                    description: Voto dell'utente corrente
+        '401':
+          description: Utente non autenticato
+        '404':
+          description: Segnalazione non trovata
+
+  /reports/{id}/user-vote:
+    get:
+      summary: Ottieni il voto dell'utente per una segnalazione
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID della segnalazione
+      responses:
+        '200':
+          description: Voto dell'utente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  voteType:
+                    type: string
+                    enum: [upvote, downvote, null]
+                    description: Tipo di voto dell'utente
+        '401':
+          description: Utente non autenticato
+
 components:
   schemas:
     User:
@@ -318,6 +389,27 @@ components:
         report:
           type: integer
           description: ID del report
+    Vote:
+      type: object
+      required:
+        - user
+        - report
+        - voteType
+      properties:
+        user:
+          type: string
+          description: ID dell'utente
+        report:
+          type: integer
+          description: ID della segnalazione
+        voteType:
+          type: string
+          enum: [upvote, downvote]
+          description: Tipo di voto
+        createdAt:
+          type: string
+          format: date-time
+          description: Data e ora del voto
   responses:
     NotFound:
       description: Risorsa non trovata
