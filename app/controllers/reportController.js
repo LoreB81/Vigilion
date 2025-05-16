@@ -30,6 +30,23 @@ const getReports = async (req, res) => {
   }
 }
 
+const getLatestReports = async (req, res) => {
+  try {
+    // Find the latest 5 reports, sorted by createdtime in descending order
+    const latestReports = await Report.find({})
+      .sort({ createdtime: -1 })
+      .limit(5);
+
+    if (!latestReports || latestReports.length === 0) {
+      return res.status(404).json({ error: "No reports found" });
+    }
+
+    return res.status(200).json(latestReports);
+  } catch (err) {
+    return res.status(500).json({ error: "Server error", details: err.message });
+  }
+}
+
 const createReport = async (req, res) => {
   try {
     /** checking if the required parameters are given in the request body */
@@ -45,7 +62,8 @@ const createReport = async (req, res) => {
       notes: req.body.notes,
       location: req.body.location,
       upvote: 0,
-      downvote: 0
+      downvote: 0,
+      createdtime: req.body.createdtime
     });
 
     const savedReport = await newReport.save();
@@ -59,5 +77,6 @@ const createReport = async (req, res) => {
 module.exports = {
   getSingleReport,
   getReports,
+  getLatestReports,
   createReport
 };

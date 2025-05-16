@@ -11,6 +11,10 @@ function createReport() {
   const position = [marker.getLatLng().lat, marker.getLatLng().lng];
   const locationString = JSON.stringify(position);
 
+  // Get current date and time in yyyy-mm-dd HH:ii format
+  const now = new Date();
+  const createdtime = now.toISOString().slice(0, 10) + ' ' + now.toTimeString().slice(0, 5);
+
   fetch('http://localhost:8000/api/reports', {
     method: 'POST',
     headers: {
@@ -20,7 +24,8 @@ function createReport() {
     body: JSON.stringify({
       typology: typology,
       notes: notes,
-      location: locationString
+      location: locationString,
+      createdtime: createdtime
     })
   })
   .then(function (res) {
@@ -36,7 +41,7 @@ function createReport() {
     }
   })
   .catch((error) => {
-    alert('Errore: ' + error);
+    console.err(error);
   });
 }
 
@@ -154,5 +159,54 @@ function checkAuth() {
   .catch(error => {
     console.error('Errore durante il controllo dell\'autenticazione: ' + error);
     window.location.href = 'login.html';
+  });
+}
+
+function fetchLatestReports() {
+  fetch('http://localhost:8000/api/reports/latest', {
+    method: 'GET',
+    credentials: 'include'
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Errore nel recupero delle segnalazioni');
+    }
+    return response.json();
+  })
+  .then(reports => {
+    displayReportsOnMap(reports);
+  })
+  .catch(error => {
+    console.error('Errore nel recupero delle segnalazioni:', error);
+  });
+}
+
+function displayReportsOnMap(reports) {
+  // Ensure the map is initialized
+  if (!window.map) return;
+  
+  reports.forEach(report => {
+    try {
+      // Parse the location string (stored as JSON string in the database)
+      const location = JSON.parse(report.location);
+      
+      // Create a marker for each report
+      const reportMarker = L.marker([location[0], location[1]]).addTo(window.map);
+      
+      // Create popup content with report details
+      const popupContent = `
+        <div>
+          <h3 class="font-bold">${report.typology}</h3>
+          <p>${report.notes}</p>
+          <p class="text-sm text-gray-600">Data: ${report.createdtime}</p>
+          <p class="text-sm text-gray-600">Voti: 👍 ${report.upvote} | 👎 ${report.downvote}</p>
+        </div>
+      `;
+      
+      // Bind popup to marker
+      reportMarker.bindPopup(popupContent);
+    } catch (error) {
+      console.error('Errore nella visualizzazione della segnalazione:', error);
+    }
   });
 }

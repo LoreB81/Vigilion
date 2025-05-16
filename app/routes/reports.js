@@ -14,6 +14,7 @@ router.use('/api/docs', swaggerUi.serve);
 router.get('/api-docs', swaggerUi.setup(swaggerDocument));
 
 /* routes */
+router.get('/latest', reportController.getLatestReports);
 router.get('/:id', reportController.getSingleReport);
 router.get('/', reportController.getReports);
 router.post('/', reportController.createReport);

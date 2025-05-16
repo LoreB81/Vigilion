@@ -209,6 +209,23 @@ paths:
                 items:
                   $ref: "#/components/schemas/Report"
 
+  /reports/latest:
+    summary: Ultime segnalazioni
+    description: Recupera le ultime 5 segnalazioni ordinate per data di creazione
+    get:
+      summary: Ultime 5 segnalazioni
+      responses:
+        "200":
+          description: Lista delle ultime 5 segnalazioni
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Report"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
   /reports/{id}:
     summary: Rappresentazione di una segnalazione
     description: La risorsa rappresenta una segnalazione univocamente.
@@ -262,6 +279,7 @@ components:
         - location
         - upvote
         - downvote
+        - createdtime
       properties:
         id:
           type: integer
@@ -285,6 +303,9 @@ components:
         downvote:
           type: integer
           description: Numero di downvote ricevuti
+        createdtime:
+          type: string
+          description: Data e ora di creazione della segnalazione (formato yyyy-mm-dd HH:ii)
     UserReport:
       type: object
       required:
