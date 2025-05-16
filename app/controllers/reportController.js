@@ -33,12 +33,14 @@ const getReports = async (req, res) => {
 const createReport = async (req, res) => {
   try {
     /** checking if the required parameters are given in the request body */
-    if (!req.body.user || !req.body.typology || !req.body.notes || !req.body.location) {
+    const user = req.cookies.logged_user;
+
+    if (!user || !req.body.typology || !req.body.notes || !req.body.location) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
     const newReport = new Report({
-      user: req.body.user,
+      user: user,
       typology: req.body.typology,
       notes: req.body.notes,
       location: req.body.location,

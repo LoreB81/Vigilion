@@ -79,6 +79,13 @@ router.post('', async function(req, res) {
 		maxAge: 86400000 // 24 hours in milliseconds
 	});
 
+	res.cookie('logged_user', user.id, {
+		httpOnly: true,
+		secure: process.env.NODE_ENV === 'production',
+		sameSite: 'strict',
+		maxAge: 86400000
+	})
+
 	res.json({
 		success: true,
 		message: 'Login successful!',

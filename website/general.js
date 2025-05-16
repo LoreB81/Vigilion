@@ -1,9 +1,15 @@
 function createReport() {
   const typology = document.getElementById('tipologia').value;
   const notes = document.getElementById('note').value;
-  const position = localStorage.getItem('position');
-
-  const locationString = typeof position === 'string' ? position : JSON.stringify(position);
+  
+  // Check if marker exists
+  if (typeof marker === 'undefined' || !marker) {
+    alert('Seleziona una posizione sulla mappa');
+    return;
+  }
+  
+  const position = [marker.getLatLng().lat, marker.getLatLng().lng];
+  const locationString = JSON.stringify(position);
 
   fetch('http://localhost:8000/api/reports', {
     method: 'POST',
@@ -18,19 +24,20 @@ function createReport() {
     })
   })
   .then(function (res) {
-    return res.json();
+    alert("Grazie per la segnalazione!");
+
+    setInterval(() => {
+      location.reload();
+    }, 1000);
   })
   .then(function (res) {
     if (res.error) {
       throw new Error(res.error);
     }
-    alert(res.message);
   })
   .catch((error) => {
     alert('Errore: ' + error);
   });
-
-  localStorage.removeItem('position');
 }
 
 function registerUser() {
