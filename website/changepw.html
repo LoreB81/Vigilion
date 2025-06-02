@@ -64,6 +64,7 @@
                         .then(html => {
                             menuContainer.innerHTML = html;
                             menuLoaded = true;
+                            updateUserGreeting();
                             showMenu();
                         })
                         .catch(error => {

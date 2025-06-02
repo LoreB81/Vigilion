@@ -1,6 +1,7 @@
 function createReport() {
   const typology = document.getElementById('tipologia').value;
   const notes = document.getElementById('note').value;
+  const district = document.getElementById('circoscrizione').value;
   
   // Check if marker exists
   if (typeof marker === 'undefined' || !marker) {
@@ -25,6 +26,7 @@ function createReport() {
       typology: typology,
       notes: notes,
       location: locationString,
+      district: district,
       createdtime: createdtime
     })
   })
@@ -155,6 +157,7 @@ function checkAuth() {
     if (!data.authenticated) {
       window.location.href = 'login.html';
     }
+    //updateUserGreeting(); // Update greeting after auth check
   })
   .catch(error => {
     console.error('Errore durante il controllo dell\'autenticazione: ' + error);
@@ -248,7 +251,6 @@ async function handleVote(reportId, voteType) {
     }
 
     const data = await response.json();
-    console.log('Vote response:', data); // Debug log
     updateVoteDisplay(reportId, data);
   } catch (error) {
     console.error('Error voting:', error);
@@ -273,9 +275,7 @@ async function getUserVote(reportId) {
   }
 }
 
-function updateVoteDisplay(reportId, data) {
-  console.log('Updating vote display for report:', reportId, 'with data:', data); // Debug log
-  
+function updateVoteDisplay(reportId, data) {  
   const upvoteBtn = document.querySelector(`#upvote-${reportId}`);
   const downvoteBtn = document.querySelector(`#downvote-${reportId}`);
   const upvoteCount = document.querySelector(`#upvote-count-${reportId}`);
@@ -307,8 +307,6 @@ function updateVoteDisplay(reportId, data) {
 
 // Function to initialize vote buttons for a report
 function initializeVoteButtons(reportId) {
-  console.log('Initializing vote buttons for report:', reportId); // Debug log
-  
   const upvoteBtn = document.querySelector(`#upvote-${reportId}`);
   const downvoteBtn = document.querySelector(`#downvote-${reportId}`);
 
@@ -318,8 +316,6 @@ function initializeVoteButtons(reportId) {
 
     // Get initial user vote state
     getUserVote(reportId).then(voteType => {
-      console.log('Initial vote type for report:', reportId, 'is:', voteType); // Debug log
-      
       if (voteType === 'upvote') {
         upvoteBtn.classList.add('text-blue-500');
         downvoteBtn.classList.add('text-gray-400');
@@ -331,7 +327,46 @@ function initializeVoteButtons(reportId) {
         downvoteBtn.classList.add('text-gray-400');
       }
     });
-  } else {
-    console.error('Could not find vote buttons for report:', reportId); // Debug log
+  }
+}
+
+async function updateUserGreeting() {
+  const greetingElement = document.getElementById('userGreeting');
+  if (!greetingElement) return;
+
+  try {
+      const response = await fetch('http://localhost:8000/api/authentication/check', {
+      credentials: 'include'
+      });
+      
+      if (!response.ok) {
+      throw new Error('Authentication check failed');
+      }
+      
+      const data = await response.json();
+
+      if (data.authenticated && data.user && data.user.id) {
+      // Get user data to display name
+      const userResponse = await fetch(`http://localhost:8000/api/users/${data.user.id}`, {
+          credentials: 'include'
+      });
+      
+      if (!userResponse.ok) {
+          throw new Error('Failed to fetch user data');
+      }
+      
+      const userData = await userResponse.json();
+      
+      if (userData && userData.firstname) {
+          greetingElement.innerHTML = `Ciao, ${userData.firstname}`;
+      } else {
+          throw new Error('User data incomplete');
+      }
+      } else {
+      greetingElement.innerHTML = 'Ciao, <a href="login.html" class="text-blue-600 hover:text-blue-800">clicca qui</a> per accedere';
+      }
+  } catch (error) {
+      console.error('Errore durante il controllo dell\'autenticazione:', error);
+      greetingElement.innerHTML = 'Ciao, <a href="login.html" class="text-blue-600 hover:text-blue-800">clicca qui</a> per accedere';
   }
 }

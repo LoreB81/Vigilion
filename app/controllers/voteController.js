@@ -78,7 +78,6 @@ const handleVote = async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Error in handleVote:', err);
     return res.status(500).json({ error: "Server error", details: err.message });
   }
 };
@@ -92,15 +91,11 @@ const getUserVote = async (req, res) => {
       return res.status(401).json({ error: "User not authenticated" });
     }
 
-    console.log('Getting vote for user:', userId, 'report:', id); // Debug log
-
     const vote = await Vote.findOne({ user: userId, report: id });
-    console.log('Found vote:', vote); // Debug log
 
     return res.status(200).json({ voteType: vote ? vote.voteType : null });
 
   } catch (err) {
-    console.error('Error in getUserVote:', err);
     return res.status(500).json({ error: "Server error", details: err.message });
   }
 };

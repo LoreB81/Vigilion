@@ -209,6 +209,57 @@ paths:
                 items:
                   $ref: "#/components/schemas/Report"
 
+  /reports/filtered:
+    post:
+      summary: Filtra le segnalazioni
+      description: Recupera le segnalazioni filtrate per data, circoscrizione e tipologia
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startDate:
+                  type: string
+                  format: date
+                  description: Data di inizio del periodo (YYYY-MM-DD)
+                endDate:
+                  type: string
+                  format: date
+                  description: Data di fine del periodo (YYYY-MM-DD)
+                district:
+                  type: string
+                  description: Circoscrizione di riferimento
+                typology:
+                  type: string
+                  enum: [Furto, Aggressione, Molestia, Soggetto armato, Soggetto alterato, Altro]
+                  description: Tipologia della segnalazione
+      responses:
+        "200":
+          description: Lista delle segnalazioni filtrate
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Report"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          description: Errore del server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Messaggio di errore
+                  details:
+                    type: string
+                    description: Dettagli dell'errore
+
   /reports/latest:
     summary: Ultime segnalazioni
     description: Recupera le ultime 5 segnalazioni ordinate per data di creazione

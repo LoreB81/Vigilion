@@ -98,6 +98,7 @@ router.post('', async function(req, res) {
 // Add logout endpoint
 router.post('/logout', function(req, res) {
 	res.clearCookie('auth_token');
+	res.clearCookie('logged_user');
 	res.json({ success: true, message: 'Logged out successfully' });
 });
 

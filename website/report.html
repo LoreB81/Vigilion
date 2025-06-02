@@ -78,6 +78,28 @@
                                 window.map.invalidateSize();
                             }, 500);
 
+                            // Request current location
+                            if (navigator.geolocation) {
+                                navigator.geolocation.getCurrentPosition(
+                                    function(position) {
+                                        const lat = position.coords.latitude;
+                                        const lng = position.coords.longitude;
+                                        
+                                        // Center map on user's location
+                                        window.map.setView([lat, lng], 14);
+                                        
+                                        // Add marker at user's location
+                                        if (typeof marker !== 'undefined') {
+                                            window.map.removeLayer(marker);
+                                        }
+                                        marker = L.marker([lat, lng]).addTo(window.map).openPopup();
+                                    },
+                                    function(error) {
+                                        console.error("Error getting location:", error);
+                                    }
+                                );
+                            }
+
                             window.map.on('click', function(e) {
                                 if (typeof marker !== 'undefined') {
                                     window.map.removeLayer(marker);
@@ -114,6 +136,23 @@
                                 <option value="Altro">Altro</option>
                             </select>
                         </div>
+
+                        <!-- Circoscrizione -->
+                        <label for="circoscrizione" class="block text-gray-700 font-medium mb-2">Circoscrizione</label>
+                        <select id="circoscrizione" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
+                            <option value="Gardolo">Gardolo</option>
+                            <option value="Meano">Meano</option>
+                            <option value="Bondone">Bondone</option>
+                            <option value="Sardagna">Sardagna</option>
+                            <option value="Ravina-Romagnano">Ravina-Romagnano</option>
+                            <option value="Argentario">Argentario</option>
+                            <option value="Povo">Povo</option>
+                            <option value="Mattarello">Mattarello</option>
+                            <option value="Villazzano">Villazzano</option>
+                            <option value="Oltrefersina">Oltrefersina</option>
+                            <option value="San Giuseppe-Santa Chiara">San Giuseppe-Santa Chiara</option>
+                            <option value="Centro Storico-Piedicastello">Centro Storico-Piedicastello</option>
+                        </select>
             
                         <!-- Note -->
                         <div class="mb-4">
@@ -151,6 +190,7 @@
                             .then(html => {
                                 menuContainer.innerHTML = html;
                                 menuLoaded = true;
+                                updateUserGreeting();
                                 showMenu();
                             })
                             .catch(error => {

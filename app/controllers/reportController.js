@@ -1,4 +1,5 @@
 const Report = require('../models/report.js');
+const User = require('../models/user.js');
 
 const getSingleReport = async (req, res) => {
   try {
@@ -52,7 +53,7 @@ const createReport = async (req, res) => {
     /** checking if the required parameters are given in the request body */
     const user = req.cookies.logged_user;
 
-    if (!user || !req.body.typology || !req.body.notes || !req.body.location) {
+    if (!user || !req.body.typology || !req.body.notes || !req.body.location || !req.body.district) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -61,6 +62,7 @@ const createReport = async (req, res) => {
       typology: req.body.typology,
       notes: req.body.notes,
       location: req.body.location,
+      district: req.body.district,
       upvote: 0,
       downvote: 0,
       createdtime: req.body.createdtime
@@ -74,9 +76,63 @@ const createReport = async (req, res) => {
   }
 }
 
+const getFilteredReports = async (req, res) => {
+  try {
+    const { startDate, endDate, district, typology } = req.body;
+    
+    // Build query object
+    const query = {};
+    
+    // Add date range filter if provided
+    if (startDate || endDate) {
+      query.createdtime = {};
+      if (startDate) {
+        query.createdtime.$gte = startDate;
+      }
+      if (endDate) {
+        query.createdtime.$lte = endDate;
+      }
+    }
+    
+    // Add district filter if provided
+    if (district) {
+      query.district = district;
+    }
+    
+    // Add typology filter if provided
+    if (typology) {
+      query.typology = typology;
+    }
+    
+    // Execute query and populate user data
+    const reports = await Report.find(query)
+      .sort({ createdtime: -1 })
+      .lean(); // Use lean() for better performance
+    
+    if (!reports || reports.length === 0) {
+      return res.status(200).json({ error: "No reports found matching the criteria" });
+    }
+
+    // Get user data for each report
+    const reportsWithUserData = await Promise.all(reports.map(async (report) => {
+      const userQuery = {id: report.user};
+      const user = await User.findOne(userQuery);
+      if (user) {
+        report.userName = `${user.firstname} ${user.lastname}`;
+      }
+      return report;
+    }));
+    
+    return res.status(200).json(reportsWithUserData);
+  } catch (err) {
+    return res.status(500).json({ error: "Server error", details: err.message });
+  }
+}
+
 module.exports = {
   getSingleReport,
   getReports,
   getLatestReports,
-  createReport
+  createReport,
+  getFilteredReports
 };

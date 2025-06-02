@@ -11,7 +11,16 @@ const getUserData = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    return res.status(200).json(user);
+    // Return user data without sensitive information
+    const userData = {
+      id: user.id,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      email: user.email,
+      circoscrizione: user.circoscrizione
+    };
+
+    return res.status(200).json(userData);
   } catch (err) {
     return res.status(500).json({ error: "Server error", details: err.message });
   }
@@ -74,7 +83,7 @@ const registerUser = async (req, res) => {
 };
 
 /**
- * Hash a password using SHA-256 with a user's UUID as salt
+ * Hash a password using SHA-256 with the user's UUID as salt
  * @param {string} password - The plain text password
  * @param {string} salt - The UUID to use as salt
  * @returns {string} - The hashed password
