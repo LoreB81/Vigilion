@@ -161,7 +161,8 @@
                 if (reports.length > 0) {
                     reports.forEach(report => {
                         const reportElement = document.createElement('div');
-                        reportElement.className = 'border rounded-lg p-3 shadow-sm';
+                        reportElement.className = 'border rounded-lg p-3 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors';
+                        reportElement.onclick = () => window.location.href = `reportdetails.html?id=${report.id}`;
                         
                         // Get user's first name and last name initial
                         const userName = report.userName ? report.userName.split(' ')[0] : 'Utente';
