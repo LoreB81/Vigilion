@@ -18,5 +18,7 @@ router.get('/api-docs', swaggerUi.setup(swaggerDocument));
 router.get('/:id', userController.getUserData);
 router.get('/', userController.getUsersData);
 router.post('/', userController.registerUser);
+router.post('/change-password', userController.changePassword);
+router.post('/change-district', userController.changeDistrict);
 
 module.exports = router;

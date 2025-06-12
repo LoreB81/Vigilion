@@ -16,7 +16,7 @@ function createReport() {
   const now = new Date();
   const createdtime = now.toISOString().slice(0, 10) + ' ' + now.toTimeString().slice(0, 5);
 
-  fetch('http://localhost:8000/api/reports', {
+  fetch('/api/reports', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -65,7 +65,7 @@ function registerUser() {
     return;
   }
 
-  fetch('http://localhost:8000/api/users', {
+  fetch('/api/users', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -104,7 +104,7 @@ function login() {
   const email = document.getElementById('emfield').value;
   const password = document.getElementById('pswfield').value;
 
-  fetch('http://localhost:8000/api/authentication', {
+  fetch('/api/authentication', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -133,7 +133,7 @@ function login() {
 }
 
 function logout() {
-  fetch('http://localhost:8000/api/authentication/logout', {
+  fetch('/api/authentication/logout', {
     method: 'POST',
     credentials: 'include'
   })
@@ -149,7 +149,7 @@ function logout() {
 }
 
 function checkAuth() {
-  fetch('http://localhost:8000/api/authentication/check', {
+  fetch('/api/authentication/check', {
     credentials: 'include'
   })
   .then(response => response.json())
@@ -167,7 +167,7 @@ function checkAuth() {
 
 async function fetchLatestReports() {
   try {
-    const response = await fetch('http://localhost:8000/api/reports/latest', {
+    const response = await fetch('/api/reports/latest', {
       method: 'GET',
       credentials: 'include'
     });
@@ -237,7 +237,7 @@ function displayReportsOnMap(reports) {
 
 async function handleVote(reportId, voteType) {
   try {
-    const response = await fetch(`http://localhost:8000/api/reports/${reportId}/vote`, {
+    const response = await fetch(`/api/reports/${reportId}/vote`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -259,7 +259,7 @@ async function handleVote(reportId, voteType) {
 
 async function getUserVote(reportId) {
   try {
-    const response = await fetch(`http://localhost:8000/api/reports/${reportId}/user-vote`, {
+    const response = await fetch(`/api/reports/${reportId}/user-vote`, {
       credentials: 'include'
     });
     
@@ -335,38 +335,119 @@ async function updateUserGreeting() {
   if (!greetingElement) return;
 
   try {
-      const response = await fetch('http://localhost:8000/api/authentication/check', {
-      credentials: 'include'
+      const response = await fetch('/api/authentication/check', {
+        credentials: 'include'
       });
       
       if (!response.ok) {
-      throw new Error('Authentication check failed');
+        throw new Error('Authentication check failed');
       }
       
       const data = await response.json();
 
       if (data.authenticated && data.user && data.user.id) {
       // Get user data to display name
-      const userResponse = await fetch(`http://localhost:8000/api/users/${data.user.id}`, {
-          credentials: 'include'
+      const userResponse = await fetch(`/api/users/${data.user.id}`, {
+        credentials: 'include'
       });
       
       if (!userResponse.ok) {
-          throw new Error('Failed to fetch user data');
+        throw new Error('Failed to fetch user data');
       }
       
       const userData = await userResponse.json();
       
       if (userData && userData.firstname) {
-          greetingElement.innerHTML = `Ciao, ${userData.firstname}`;
+        greetingElement.innerHTML = `Ciao, ${userData.firstname}`;
       } else {
-          throw new Error('User data incomplete');
+        throw new Error('User data incomplete');
       }
       } else {
-      greetingElement.innerHTML = 'Ciao, <a href="login.html" class="text-blue-600 hover:text-blue-800">clicca qui</a> per accedere';
+        greetingElement.innerHTML = 'Ciao, <a href="login.html" class="text-blue-600 hover:text-blue-800">clicca qui</a> per accedere';
       }
   } catch (error) {
       console.error('Errore durante il controllo dell\'autenticazione:', error);
       greetingElement.innerHTML = 'Ciao, <a href="login.html" class="text-blue-600 hover:text-blue-800">clicca qui</a> per accedere';
+  }
+}
+
+async function changePassword(oldPassword, newPassword, confirmPassword) {
+  // Validate inputs
+  if (!oldPassword || !newPassword || !confirmPassword) {
+    alert('Per favore, compila tutti i campi');
+    return;
+  }
+
+  if (newPassword !== confirmPassword) {
+    alert('Le nuove password non coincidono');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/users/change-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        oldPassword: oldPassword,
+        newPassword: newPassword
+      })
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Errore durante la modifica della password');
+    }
+
+    const data = await response.json();
+    if (data.success) {
+      alert('Password modificata con successo!');
+      window.location.href = 'index.html';
+    } else {
+      throw new Error(data.error || 'Errore durante la modifica della password');
+    }
+  } catch (error) {
+    console.error('Errore durante la modifica della password:', error);
+    alert(error.message);
+  }
+}
+
+async function changeDistrict() {
+  const district = document.getElementById('cirfield').value;
+
+  if (!district) {
+    alert('Per favore, seleziona una circoscrizione');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/users/change-district', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        district: district
+      })
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Errore durante la modifica della circoscrizione');
+    }
+
+    const data = await response.json();
+    if (data.success) {
+      alert('Circoscrizione modificata con successo!');
+      window.location.href = 'index.html';
+    } else {
+      throw new Error(data.error || 'Errore durante la modifica della circoscrizione');
+    }
+  } catch (error) {
+    console.error('Errore durante la modifica della circoscrizione:', error);
+    alert(error.message);
   }
 }

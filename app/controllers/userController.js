@@ -82,6 +82,83 @@ const registerUser = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    // Get user ID from the authenticated session
+    const userId = req.cookies.logged_user;
+    
+    // Find the user
+    const user = await User.findOne({ id: userId });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Hash the old password with the user's UUID as salt
+    const hashedOldPassword = hashPassword(req.body.oldPassword, userId);
+
+    // Verify old password
+    if (hashedOldPassword !== user.password) {
+      return res.status(400).json({ error: "Vecchia password non corretta" });
+    }
+
+    // Validate new password
+    if (!checkIfValidPassword(req.body.newPassword)) {
+      return res.status(400).json({ error: "La nuova password non rispecchia i requisiti di sicurezza" });
+    }
+
+    // Hash the new password with the user's UUID as salt
+    const hashedNewPassword = hashPassword(req.body.newPassword, userId);
+
+    // Update the password
+    user.password = hashedNewPassword;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password modificata con successo"
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: "Errore durante la modifica della password", details: err.message });
+  }
+};
+
+const changeDistrict = async (req, res) => {
+  try {
+    // Get user ID from the authenticated session
+    const userId = req.cookies.logged_user;
+    
+    // Find the user
+    const user = await User.findOne({ id: userId });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Validate district
+    const validDistricts = [
+      "Gardolo", "Meano", "Bondone", "Sardagna", "Ravina-Romagnano",
+      "Argentario", "Povo", "Mattarello", "Villazzano", "Oltrefersina",
+      "San Giuseppe-Santa Chiara", "Centro Storico-Piedicastello"
+    ];
+
+    if (!validDistricts.includes(req.body.district)) {
+      return res.status(400).json({ error: "Circoscrizione non valida" });
+    }
+
+    // Update the district
+    user.circoscrizione = req.body.district;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Circoscrizione modificata con successo"
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: "Errore durante la modifica della circoscrizione", details: err.message });
+  }
+};
+
 /**
  * Hash a password using SHA-256 with the user's UUID as salt
  * @param {string} password - The plain text password
@@ -94,7 +171,7 @@ function hashPassword(password, salt) {
 
 /* TODO: match the password validation with the requirements in D1 document */
 function checkIfValidPassword(password) {
-  var re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  var re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d#@$!%*?&]{8,}$/;
   return re.test(password);
 }
 
@@ -106,5 +183,7 @@ function checkIfEmailInString(email) {
 module.exports = {
   getUserData,
   getUsersData,
-  registerUser
+  registerUser,
+  changePassword,
+  changeDistrict
 };

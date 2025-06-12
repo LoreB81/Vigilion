@@ -180,6 +180,100 @@ paths:
         "400":
           $ref: "#/components/responses/BadRequest"
 
+  /users/change-password:
+    post:
+      summary: Modifica la password dell'utente
+      description: Modifica la password dell'utente autenticato, verificando prima la vecchia password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - oldPassword
+                - newPassword
+              properties:
+                oldPassword:
+                  type: string
+                  description: Vecchia password dell'utente
+                newPassword:
+                  type: string
+                  description: Nuova password dell'utente
+      responses:
+        "200":
+          description: Password modificata con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: True se la modifica è riuscita
+                  message:
+                    type: string
+                    description: Messaggio di conferma
+        "400":
+          description: Password non valida o non corrispondente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Messaggio di errore
+        "401":
+          description: Utente non autenticato
+        "500":
+          description: Errore del server
+
+  /users/change-district:
+    post:
+      summary: Modifica la circoscrizione dell'utente
+      description: Modifica la circoscrizione dell'utente autenticato
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - district
+              properties:
+                district:
+                  type: string
+                  description: Nuova circoscrizione dell'utente
+      responses:
+        "200":
+          description: Circoscrizione modificata con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: True se la modifica è riuscita
+                  message:
+                    type: string
+                    description: Messaggio di conferma
+        "400":
+          description: Circoscrizione non valida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Messaggio di errore
+        "401":
+          description: Utente non autenticato
+        "500":
+          description: Errore del server
+
   /reports:
     summary: Gestione delle segnalazioni
     description: Creazione in POST di una nuova segnalazione e restituzione in GET di tutte le segnalazioni
