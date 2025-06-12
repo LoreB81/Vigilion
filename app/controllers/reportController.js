@@ -18,18 +18,17 @@ const getSingleReport = async (req, res) => {
 
 const getReports = async (req, res) => {
   try {
-    /** querying the db without where clauses, so that all reports are returned */
-    const reports = Report.find({}, (err, data) => {
-      if (err || !data || data.length == 0) {
-        return res.status(404).json({ error: "Reports not found" });
-      }
+    const reports = await Report.find({});
 
-      return res.status(200).json(reports);
-    });
+    if (!reports || reports.length === 0) {
+      return res.status(404).json({ error: "Reports not found" });
+    }
+
+    return res.status(200).json(reports);
   } catch (err) {
     return res.status(500).json({ error: "Server error", details: err.message });
   }
-}
+};
 
 const getLatestReports = async (req, res) => {
   try {
