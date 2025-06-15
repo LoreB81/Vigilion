@@ -1,231 +1,164 @@
 <!DOCTYPE html>
 <!--./tailwindcss -i input.css -o output.css --minify-->
 <html lang="it">
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="style/output.css" rel="stylesheet">
-        
-        <!-- include leaflet css and js to render the map -->
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-            integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-            crossorigin=""/>
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
-        <script src="general.js"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                checkAuth();
-            });
-        </script>
-        <link rel="stylesheet" href="style.css">
 
-        <title>Segnalazione</title>
-    </head>
-    <body class="bg-gray-100">
-        <div class="flex justify-center items-center"></div>
-            <div class="bg-white shadow-lg relative overflow-hidden w-full h-5/6 min-h-screen">
-                <!-- Header -->
-                <div class="bg-green-500 flex justify-between items-center p-4">
-                    <div class="text-white font-bold text-lg flex items-center">
-                        <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
-                        <a href="index.html"><span>Segnalazione</span></a>
-                    </div>
-                    <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
-                </div>
-                <div id="menu-container"></div>
-        
-                <form id="data-form">
-                    <!-- Mappa -->
-                    <div class="h-[50vh] flex justify-center items-center bg-gray-100">
-                        <div id="map" class="w-1/2 h-[50vh] bg-gray-300 rounded-lg shadow-md" style="height: 50vh;"></div>
-                    </div>
-                    
-                    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-                    <script>
-                        var marker; // Global marker variable for the map
-                        
-                        function initializeMapWhenReady() {
-                            const mapContainer = document.getElementById("map");
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="style/output.css" rel="stylesheet">
 
-                            const waitForSize = () => {
-                                if (mapContainer.offsetWidth && mapContainer.offsetHeight) {
-                                    initializeMap();
-                                } else {
-                                    setTimeout(waitForSize, 100); // riprova tra 100ms
-                                }
-                            };
+  <!-- include leaflet css and js to render the map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="general.js"></script>
+  <script src="menufunctions.js"></script>
+  <script src="loadselectoptions.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      checkAuth();
+    });
+  </script>
+  <link rel="stylesheet" href="style.css">
 
-                            waitForSize();
-                        }
+  <title>Segnalazione</title>
+</head>
 
-                        function initializeMap() {
-                            var mapContainer = document.getElementById("map");
+<body class="bg-gray-100">
+  <div class="flex justify-center items-center"></div>
+  <div class="bg-white shadow-lg relative overflow-hidden w-full h-5/6 min-h-screen">
+    <!-- Header -->
+    <div class="bg-green-500 flex justify-between items-center p-4">
+      <div class="text-white font-bold text-lg flex items-center">
+        <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+        <a href="index.html"><span>Segnalazione</span></a>
+      </div>
+      <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
+    </div>
+    <div id="menu-container"></div>
 
-                            /** check div #map size */
-                            if (!mapContainer.offsetWidth || !mapContainer.offsetHeight) {
-                                console.error("div #map has invalid dimension at creation:", mapContainer.offsetWidth, mapContainer.offsetHeight);
-                                return;
-                            }
+    <form id="data-form">
+      <!-- Map -->
+      <div class="h-[50vh] flex justify-center items-center bg-gray-100">
+        <div id="map" class="w-1/2 h-[50vh] bg-gray-300 rounded-lg shadow-md" style="height: 50vh;"></div>
+      </div>
 
-                            window.map = L.map('map', { zoomControl: true }).setView([46.0704, 11.1215], 14);
+      <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+      <script>
+        var marker; // global marker variable for the map
 
-                            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            }).addTo(window.map);
+        function initializeMapWhenReady() {
+          const mapContainer = document.getElementById("map");
 
-                            setTimeout(() => {
-                                window.map.invalidateSize();
-                            }, 500);
+          const waitForSize = () => {
+            if (mapContainer.offsetWidth && mapContainer.offsetHeight) {
+              initializeMap();
+            } else {
+              setTimeout(waitForSize, 100); // retry in 100ms
+            }
+          };
 
-                            // Request current location
-                            if (navigator.geolocation) {
-                                navigator.geolocation.getCurrentPosition(
-                                    function(position) {
-                                        const lat = position.coords.latitude;
-                                        const lng = position.coords.longitude;
-                                        
-                                        // Center map on user's location
-                                        window.map.setView([lat, lng], 14);
-                                        
-                                        // Add marker at user's location
-                                        if (typeof marker !== 'undefined') {
-                                            window.map.removeLayer(marker);
-                                        }
-                                        marker = L.marker([lat, lng]).addTo(window.map).openPopup();
-                                    },
-                                    function(error) {
-                                        console.error("Error getting location:", error);
-                                    }
-                                );
-                            }
+          waitForSize();
+        }
 
-                            window.map.on('click', function(e) {
-                                if (typeof marker !== 'undefined') {
-                                    window.map.removeLayer(marker);
-                                }
+        function initializeMap() {
+          var mapContainer = document.getElementById("map");
 
-                                marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(window.map).openPopup();
-                            });
-                        }
+          // check div #map size
+          if (!mapContainer.offsetWidth || !mapContainer.offsetHeight) {
+            console.error("div #map has invalid dimension at creation:", mapContainer.offsetWidth, mapContainer.offsetHeight);
+            return;
+          }
 
-                        /** calls the function to initialize the map when the page is loaded */
-                        document.addEventListener("DOMContentLoaded", function () {
-                            initializeMapWhenReady();
-                        });
+          window.map = L.map('map', { zoomControl: true }).setView([46.0704, 11.1215], 14);
 
-                        /** calls the function to initialize the map when the page is resized */
-                        window.addEventListener("resize", function () {
-                            if (window.map) {
-                                window.map.invalidateSize();
-                            }
-                        });
-                    </script>
-            
-                    <!-- Form -->
-                    <div class="p-4">
-                        <!-- Tipologia -->
-                        <div class="mb-4">
-                            <label for="tipologia" class="block text-gray-700 font-medium mb-2">Tipologia</label>
-                            <select id="tipologia" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
-                                <option value="Furto">Furto</option>
-                                <option value="Aggressione">Aggressione</option>
-                                <option value="Molestia">Molestia</option>
-                                <option value="Soggetto armato">Soggetto armato</option>
-                                <option value="Soggetto alterato">Soggetto alterato</option>
-                                <option value="Altro">Altro</option>
-                            </select>
-                        </div>
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          }).addTo(window.map);
 
-                        <!-- Circoscrizione -->
-                        <label for="circoscrizione" class="block text-gray-700 font-medium mb-2">Circoscrizione</label>
-                        <select id="circoscrizione" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none">
-                            <option value="Gardolo">Gardolo</option>
-                            <option value="Meano">Meano</option>
-                            <option value="Bondone">Bondone</option>
-                            <option value="Sardagna">Sardagna</option>
-                            <option value="Ravina-Romagnano">Ravina-Romagnano</option>
-                            <option value="Argentario">Argentario</option>
-                            <option value="Povo">Povo</option>
-                            <option value="Mattarello">Mattarello</option>
-                            <option value="Villazzano">Villazzano</option>
-                            <option value="Oltrefersina">Oltrefersina</option>
-                            <option value="San Giuseppe-Santa Chiara">San Giuseppe-Santa Chiara</option>
-                            <option value="Centro Storico-Piedicastello">Centro Storico-Piedicastello</option>
-                        </select>
-            
-                        <!-- Note -->
-                        <div class="mb-4">
-                            <label for="note" class="block text-gray-700 font-medium mb-2">Note</label>
-                            <textarea id="note" rows="4" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none" placeholder="Inserisci note"></textarea>
-                        </div>
-            
-                        <!-- Submit Button -->
-                        <div class="flex justify-center">
-                            <button type="button" onclick="createReport()" class="bg-red-600 text-white font-bold py-2 px-6 rounded-full text-lg shadow-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500">
-                                Invia
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </div>
+          setTimeout(() => {
+            window.map.invalidateSize();
+          }, 500);
+
+          // request current location
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              function (position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                // center map on user's location
+                window.map.setView([lat, lng], 14);
+
+                // add marker at user's location
+                if (typeof marker !== 'undefined') {
+                  window.map.removeLayer(marker);
+                }
+                marker = L.marker([lat, lng]).addTo(window.map).openPopup();
+              },
+              function (error) {
+                console.error("Error getting location:", error);
+              }
+            );
+          }
+
+          window.map.on('click', function (e) {
+            if (typeof marker !== 'undefined') {
+              window.map.removeLayer(marker);
+            }
+
+            marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(window.map).openPopup();
+          });
+        }
+
+        // calls the function to initialize the map when the page is loaded
+        document.addEventListener("DOMContentLoaded", function () {
+          initializeMapWhenReady();
+        });
+
+        // calls the function to initialize the map when the page is resized
+        window.addEventListener("resize", function () {
+          if (window.map) {
+            window.map.invalidateSize();
+          }
+        });
+      </script>
+
+      <!-- Form -->
+      <div class="p-4">
+        <!-- Typology -->
+        <div class="mb-4">
+          <label for="typology" class="block text-gray-700 font-medium mb-2">Tipologia</label>
+          <select id="typology"
+            class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none"></select>
         </div>
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                const menuButton = document.getElementById("menu-toggle");
-                const menuContainer = document.getElementById("menu-container");
-                let menuLoaded = false;
 
-                menuButton.addEventListener("click", function (e) {
-                    e.stopPropagation();
+        <!-- District -->
+        <label for="district" class="block text-gray-700 font-medium mb-2">Circoscrizione</label>
+        <select id="district"
+          class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none"></select>
 
-                    if (!menuLoaded) {
-                        fetch("menu.html")
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error(`Errore HTTP: ${response.status} ${response.statusText}`);
-                                }
-                                return response.text();
-                            })
-                            .then(html => {
-                                menuContainer.innerHTML = html;
-                                menuLoaded = true;
-                                updateUserGreeting();
-                                showMenu();
-                            })
-                            .catch(error => {
-                                console.error("Errore nel caricamento del menu:", error);
-                            });
-                    } else {
-                        if (menuContainer.classList.contains('open')) {
-                            hideMenu();
-                        } else {
-                            showMenu();
-                        }
-                    }
-                });
+        <!-- Notes -->
+        <div class="mb-4">
+          <label for="notes" class="block text-gray-700 font-medium mb-2">Note</label>
+          <textarea id="notes" rows="4"
+            class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
+            placeholder="Inserisci note"></textarea>
+        </div>
 
-                document.addEventListener("click", function (e) {
-                    if (!menuContainer.contains(e.target) && !menuButton.contains(e.target)) {
-                        hideMenu();
-                    }
-                });
+        <!-- Submit Button -->
+        <div class="flex justify-center">
+          <button type="button" onclick="createReport()"
+            class="bg-red-600 text-white font-bold py-2 px-6 rounded-full text-lg shadow-lg hover:bg-red-700 focus:ring-2 focus:ring-red-500">
+            Invia
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+  </div>
+</body>
 
-                function showMenu() {
-                    menuContainer.style.display = 'block';
-                    menuContainer.classList.add('open');
-                }
-
-                function hideMenu() {
-                    menuContainer.classList.remove('open');
-                    if (!menuContainer.classList.contains('open')) {
-                        menuContainer.style.display = 'none';
-                        menuContainer.innerHTML = '';
-                    }
-
-                    menuLoaded = false;
-                }
-            });
-        </script>
-    </body>
 </html>

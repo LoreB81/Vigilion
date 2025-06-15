@@ -7,8 +7,8 @@ const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+
 async function verify(token) {
   const ticket = await client.verifyIdToken({
     idToken: token,
@@ -19,6 +19,7 @@ async function verify(token) {
   return payload;
 }
 
+/** google authentication endpoint */
 router.post('', async function(req, res) {
 	var user = {};
 
@@ -29,7 +30,7 @@ router.post('', async function(req, res) {
 		user = await User.findOne({ email: payload['email'] }).exec();
 		if (!user) {
 			const userId = uuidv4();
-			// Hash a default password for Google users
+			/** hash default password */
 			const defaultPassword = crypto.createHash('sha256').update('default-google-password-to-be-changed' + userId).digest('hex');
 			
 			user = new User({
@@ -50,10 +51,10 @@ router.post('', async function(req, res) {
 			return;
 		}
 	
-		// Hash the input password with the user's id as salt
+		/** hash the input password */
 		const hashedPassword = crypto.createHash('sha256').update(req.body.password + user.id).digest('hex');
 		
-		// Compare the hashed password with the one stored in the database
+		/** comparing passwords */
 		if (user.password !== hashedPassword) {
 			res.json({ success: false, message: 'Authentication failed. Wrong password.' });
 			return;
@@ -71,12 +72,12 @@ router.post('', async function(req, res) {
 
 	var token = jwt.sign(payload, process.env.SUPER_SECRET, options);
 
-	// Set HTTP-only cookie with the token
+	/** setup HTTP cookie */
 	res.cookie('auth_token', token, {
 		httpOnly: true,
-		secure: process.env.NODE_ENV === 'production', // Only send cookie over HTTPS in production
+		secure: process.env.NODE_ENV === 'production',
 		sameSite: 'strict',
-		maxAge: 86400000 // 24 hours in milliseconds
+		maxAge: 86400000
 	});
 
 	res.cookie('logged_user', user.id, {
@@ -84,7 +85,7 @@ router.post('', async function(req, res) {
 		secure: process.env.NODE_ENV === 'production',
 		sameSite: 'strict',
 		maxAge: 86400000
-	})
+	});
 
 	res.json({
 		success: true,
@@ -95,14 +96,14 @@ router.post('', async function(req, res) {
 	});
 });
 
-// Add logout endpoint
+/** logout endpoint */
 router.post('/logout', function(req, res) {
 	res.clearCookie('auth_token');
 	res.clearCookie('logged_user');
 	res.json({ success: true, message: 'Logged out successfully' });
 });
 
-// Add authentication check endpoint
+/** authentication check endpoint */
 router.get('/check', function(req, res) {
 	const token = req.cookies.auth_token;
 	
@@ -114,6 +115,7 @@ router.get('/check', function(req, res) {
 		if (err) {
 			return res.json({ authenticated: false });
 		}
+		
 		res.json({ 
 			authenticated: true,
 			user: {

@@ -14,14 +14,14 @@ const swaggerDocument = yaml.load(fs.readFileSync(__dirname + '/../../swagger/ao
 router.use('/api/docs', swaggerUi.serve);
 router.get('/api-docs', swaggerUi.setup(swaggerDocument));
 
-// Existing routes
+/** report routes */
 router.get('/', reportController.getReports);
 router.get('/latest', reportController.getLatestReports);
 router.get('/:id', reportController.getSingleReport);
 router.post('/', reportController.createReport);
 router.post('/filtered', reportController.getFilteredReports);
 
-// New vote routes
+/** voting routes */
 router.post('/:id/vote', voteController.handleVote);
 router.get('/:id/user-vote', voteController.getUserVote);
 

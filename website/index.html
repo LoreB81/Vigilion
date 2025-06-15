@@ -1,232 +1,184 @@
 <!DOCTYPE html>
 <!--./tailwindcss -i input.css -o output.css --minify-->
 <html lang="it">
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="style/output.css" rel="stylesheet">
 
-        <!-- include leaflet css and js to render the map -->
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-            integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-            crossorigin=""/>
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
-        <script src="general.js"></script>
-        <link rel="stylesheet" href="style.css">
-        
-        <title>Vigilion</title>
-    </head>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="style/output.css" rel="stylesheet">
+
+  <!-- include leaflet css and js to render the map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="general.js"></script>
+  <script src="menufunctions.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      checkAuth();
+    });
+  </script>
+
+  <title>Vigilion</title>
+</head>
+
 <body class="bg-gray-100 h-screen">
-    <div class="flex justify-center items-center h-screen">
-        <div class="bg-white shadow-lg relative overflow-hidden w-full min-h-screen">
-            <!-- Header -->
-            <div class="bg-green-500 flex justify-between items-center p-4">
-                <div class="text-white font-bold text-lg flex items-center">
-                    <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
-                    <a href="index.html"><span>Vigilion</span></a>
-                </div>
-                <div>
-                    <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
-                </div>
-            </div>
-            <div id="menu-container" class="relative"></div>
-
-            <!-- Mappa -->
-            <div class="h-[75vh] flex justify-center items-center bg-gray-100">
-                <div id="map" class="w-1/2 h-[75vh] bg-gray-300 rounded-lg shadow-md" style="height: 75vh;"></div>
-            </div>
-            
-            <script>
-                function initializeMapWhenReady() {
-                    const mapContainer = document.getElementById("map");
-
-                    const waitForSize = () => {
-                        if (mapContainer.offsetWidth && mapContainer.offsetHeight) {
-                            initializeMap();
-                        } else {
-                            setTimeout(waitForSize, 100); // riprova tra 100ms
-                        }
-                    };
-
-                    waitForSize();
-                }
-
-                function initializeMap() {
-                    var mapContainer = document.getElementById("map");
-
-                    /** check div #map size */
-                    if (!mapContainer.offsetWidth || !mapContainer.offsetHeight) {
-                        console.error("div #map has invalid dimension at creation:", mapContainer.offsetWidth, mapContainer.offsetHeight);
-                        return;
-                    }
-
-                    window.map = L.map('map', { zoomControl: true }).setView([46.0704, 11.1215], 14);
-
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    }).addTo(window.map);
-
-                    setTimeout(() => {
-                        window.map.invalidateSize();
-                        fetchLatestReports();
-                    }, 500);
-                }
-
-                /** calls the function to initialize the map when the page is loaded */
-                document.addEventListener("DOMContentLoaded", function () {
-                    initializeMapWhenReady();
-                });
-
-                /** calls the function to initialize the map when the page is resized */
-                window.addEventListener("resize", function () {
-                    if (window.map) {
-                        window.map.invalidateSize();
-                    }
-                });
-
-                function displayReport(report) {
-                    const popup = L.popup()
-                        .setLatLng(JSON.parse(report.location))
-                        .setContent(`
-                            <div class="p-2">
-                                <h3 class="font-bold text-lg mb-2">${report.typology}</h3>
-                                <p class="text-xs text-gray-500 mb-1">Data: ${report.createdtime}</p>
-                                <p class="text-gray-700 mb-2">${report.notes}</p>
-                                <div class="flex items-center space-x-4">
-                                    <button id="upvote-${report.id}" class="flex items-center space-x-1">
-                                        <span class="text-2xl">👍</span>
-                                        <span id="upvote-count-${report.id}">${report.upvote}</span>
-                                    </button>
-                                    <button id="downvote-${report.id}" class="flex items-center space-x-1">
-                                        <span class="text-2xl">👎</span>
-                                        <span id="downvote-count-${report.id}">${report.downvote}</span>
-                                    </button>
-                                </div>
-                            </div>
-                        `)
-                        .openOn(window.map);
-
-                    // Initialize vote buttons after popup is opened
-                    setTimeout(() => {
-                        initializeVoteButtons(report.id);
-                    }, 100);
-                }
-
-                async function fetchLatestReports() {
-                    try {
-                        const response = await fetch('/api/reports/latest');
-                        if (!response.ok) {
-                            throw new Error('Failed to fetch reports');
-                        }
-                        const reports = await response.json();
-                        
-                        // Clear existing markers
-                        if (window.markers) {
-                            window.markers.forEach(marker => marker.remove());
-                        }
-                        window.markers = [];
-
-                        // Add markers for each report
-                        reports.forEach(report => {
-                            const marker = L.marker(JSON.parse(report.location))
-                                .addTo(window.map)
-                                .bindPopup(`
-                                    <div class="p-2">
-                                        <h3 class="font-bold text-lg mb-2">${report.typology}</h3>
-                                        <p class="text-xs text-gray-500 mb-1">Data: ${report.createdtime}</p>
-                                        <p class="text-gray-700 mb-2">${report.notes}</p>
-                                        <div class="flex items-center space-x-4">
-                                            <button id="upvote-${report.id}" class="flex items-center space-x-1">
-                                                <span class="text-2xl">👍</span>
-                                                <span id="upvote-count-${report.id}">${report.upvote}</span>
-                                            </button>
-                                            <button id="downvote-${report.id}" class="flex items-center space-x-1">
-                                                <span class="text-2xl">👎</span>
-                                                <span id="downvote-count-${report.id}">${report.downvote}</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                `);
-
-                            marker.on('popupopen', () => {
-                                initializeVoteButtons(report.id);
-                            });
-
-                            window.markers.push(marker);
-                        });
-                    } catch (error) {
-                        console.error('Error fetching reports:', error);
-                    }
-                }
-            </script>
-
-            <br>
-            <br>
-            <!-- Bottone 112 -->
-            <div class="absolute bottom-0 w-full left-0 p-4 flex justify-center items-center">
-                <button class="bg-red-700 text-white font-bold py-2 rounded-full text-xl shadow-lg w-2/12 min-w-28 hover:bg-red-900">
-                    <span>&#9742;</span> 112
-                </button>
-            </div>
+  <div class="flex justify-center items-center h-screen">
+    <div class="bg-white shadow-lg relative overflow-hidden w-full min-h-screen">
+      <!-- Header -->
+      <div class="bg-green-500 flex justify-between items-center p-4">
+        <div class="text-white font-bold text-lg flex items-center">
+          <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+          <a href="index.html"><span>Vigilion</span></a>
         </div>
-    </div>
-    <script>
+        <div>
+          <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
+        </div>
+      </div>
+      <div id="menu-container" class="relative"></div>
+
+      <!-- Map -->
+      <div class="h-[75vh] flex justify-center items-center bg-gray-100">
+        <div id="map" class="w-1/2 h-[75vh] bg-gray-300 rounded-lg shadow-md" style="height: 75vh;"></div>
+      </div>
+
+      <script>
+        function initializeMapWhenReady() {
+          const mapContainer = document.getElementById("map");
+
+          const waitForSize = () => {
+            if (mapContainer.offsetWidth && mapContainer.offsetHeight) {
+              initializeMap();
+            } else {
+              setTimeout(waitForSize, 100); // retry in 100ms
+            }
+          };
+
+          waitForSize();
+        }
+
+        function initializeMap() {
+          var mapContainer = document.getElementById("map");
+
+          // check div #map size
+          if (!mapContainer.offsetWidth || !mapContainer.offsetHeight) {
+            console.error("div #map has invalid dimension at creation:", mapContainer.offsetWidth, mapContainer.offsetHeight);
+            return;
+          }
+
+          window.map = L.map('map', { zoomControl: true }).setView([46.0704, 11.1215], 14);
+
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          }).addTo(window.map);
+
+          setTimeout(() => {
+            window.map.invalidateSize();
+            fetchLatestReports();
+          }, 500);
+        }
+
+        // calls the function to initialize the map when the page is loaded
         document.addEventListener("DOMContentLoaded", function () {
-            const menuButton = document.getElementById("menu-toggle");
-            const menuContainer = document.getElementById("menu-container");
-            let menuLoaded = false;
-
-            menuButton.addEventListener("click", function (e) {
-                e.stopPropagation();
-
-                if (!menuLoaded) {
-                    fetch("menu.html")
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`Errore HTTP: ${response.status} ${response.statusText}`);
-                            }
-                            return response.text();
-                        })
-                        .then(html => {
-                            menuContainer.innerHTML = html;
-                            menuLoaded = true;
-                            updateUserGreeting();
-                            showMenu();
-                        })
-                        .catch(error => {
-                            console.error("Errore nel caricamento del menu:", error);
-                        });
-                } else {
-                    if (menuContainer.classList.contains('open')) {
-                        hideMenu();
-                    } else {
-                        showMenu();
-                    }
-                }
-            });
-
-            document.addEventListener("click", function (e) {
-                if (!menuContainer.contains(e.target) && !menuButton.contains(e.target)) {
-                    hideMenu();
-                }
-            });
-
-            function showMenu() {
-                menuContainer.style.display = 'block';
-                menuContainer.classList.add('open');
-            }
-
-            function hideMenu() {
-                menuContainer.classList.remove('open');
-                if (!menuContainer.classList.contains('open')) {
-                    menuContainer.style.display = 'none';
-                    menuContainer.innerHTML = '';
-                }
-
-                menuLoaded = false;
-            }
+          initializeMapWhenReady();
         });
-    </script>
+
+        // calls the function to initialize the map when the page is resized
+        window.addEventListener("resize", function () {
+          if (window.map) {
+            window.map.invalidateSize();
+          }
+        });
+
+        function displayReport(report) {
+          const popup = L.popup()
+            .setLatLng(JSON.parse(report.location))
+            .setContent(`
+              <div class="p-2">
+                <h3 class="font-bold text-lg mb-2">${report.typology}</h3>
+                <p class="text-xs text-gray-500 mb-1">Data: ${report.createdtime}</p>
+                <p class="text-gray-700 mb-2">${report.notes}</p>
+                <div class="flex items-center space-x-4">
+                  <button id="upvote-${report.id}" class="flex items-center space-x-1">
+                    <span class="text-2xl">👍</span>
+                    <span id="upvote-count-${report.id}">${report.upvote}</span>
+                  </button>
+                  <button id="downvote-${report.id}" class="flex items-center space-x-1">
+                    <span class="text-2xl">👎</span>
+                    <span id="downvote-count-${report.id}">${report.downvote}</span>
+                  </button>
+                </div>
+              </div>
+            `)
+            .openOn(window.map);
+
+          // initialize vote buttons after popup is opened
+          setTimeout(() => {
+            initializeVoteButtons(report.id);
+          }, 100);
+        }
+
+        async function fetchLatestReports() {
+          try {
+            const response = await fetch('/api/reports/latest');
+            if (!response.ok) {
+              throw new Error('Failed to fetch reports');
+            }
+            const reports = await response.json();
+
+            // clear existing markers
+            if (window.markers) {
+              window.markers.forEach(marker => marker.remove());
+            }
+            window.markers = [];
+
+            // add markers for each report
+            reports.forEach(report => {
+              const marker = L.marker(JSON.parse(report.location))
+                .addTo(window.map)
+                .bindPopup(`
+                  <div class="p-2">
+                    <h3 class="font-bold text-lg mb-2">${report.typology}</h3>
+                    <p class="text-xs text-gray-500 mb-1">Data: ${report.createdtime}</p>
+                    <p class="text-gray-700 mb-2">${report.notes}</p>
+                    <div class="flex items-center space-x-4">
+                      <button id="upvote-${report.id}" class="flex items-center space-x-1">
+                        <span class="text-2xl">👍</span>
+                        <span id="upvote-count-${report.id}">${report.upvote}</span>
+                      </button>
+                      <button id="downvote-${report.id}" class="flex items-center space-x-1">
+                        <span class="text-2xl">👎</span>
+                        <span id="downvote-count-${report.id}">${report.downvote}</span>
+                      </button>
+                    </div>
+                  </div>
+                `);
+
+              marker.on('popupopen', () => {
+                initializeVoteButtons(report.id);
+              });
+
+              window.markers.push(marker);
+            });
+          } catch (error) {
+            console.error('Error fetching reports:', error);
+          }
+        }
+      </script>
+
+      <br>
+      <br>
+      <!-- Bottone 112 -->
+      <div class="absolute bottom-0 w-full left-0 p-4 flex justify-center items-center">
+        <button class="bg-red-700 text-white font-bold py-2 rounded-full text-xl shadow-lg w-2/12 min-w-28 hover:bg-red-900" onclick="callNumber()">
+          <span>&#9742;</span> 112
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
+
 </html>

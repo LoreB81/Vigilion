@@ -4,24 +4,20 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const app = express();
 
-/**
- * Routes import
- */
+/** routes import */
 const user = require('./routes/users.js');
 const report = require('./routes/reportRoutes.js');
 
 const authentication = require('./authentication.js');
 const tokenChecker = require('./tokenChecker.js');
 
-/**
- * Configure Express.js parsing middleware
- */
+/** express.js parsing middleware */
 const mongoose = require('mongoose');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Configure CORS
+/** configuring CORS */
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' ? 'https://yourdomain.com' : 'http://localhost:8000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -32,6 +28,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+/** imports all frontend pages */
 const projectRoot = process.cwd();
 app.use(express.static(projectRoot + '/website'));
 
@@ -40,6 +37,7 @@ app.use((req, res, next) => {
   next();
 });
 
+/** database connection */
 app.locals.db = mongoose.connect(
   process.env.DB_URL
 ).then(() => {
@@ -49,26 +47,21 @@ app.locals.db = mongoose.connect(
   });
 });
 
-/**
- * Authentication routing and middleware
- */
+/** authentication routing */
 app.use('/api/authentication', authentication);
 app.use('/api/reports', tokenChecker);
 
-/**
- * Resource routing
- */
+/** resource routing */
 app.use('/api/reports', report);
 app.use('/api/users', user);
-// app.use('/api/v1/userreports', userreport);
 
-/* Default 404 handler */
+/* default 404 handler */
 app.use((req, res) => {
   res.status(404);
   res.json({ error: 'Not found' });
 });
 
-/* Default error handler */
+/* default error handler */
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something broke!' });

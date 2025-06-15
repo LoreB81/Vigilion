@@ -15,32 +15,32 @@ const handleVote = async (req, res) => {
       return res.status(400).json({ error: "Invalid vote type" });
     }
 
-    // Find existing vote
+    /** find existing vote */
     const existingVote = await Vote.findOne({ user: userId, report: id });
 
-    // Get the report
+    /** get the report from the id */
     const report = await Report.findOne({ id: id });
     if (!report) {
       return res.status(404).json({ error: "Report not found" });
     }
 
     if (existingVote) {
-      // If voting the same way, remove the vote
+      /** if the vote clicked is the same, remove it */
       if (existingVote.voteType === voteType) {
         await Vote.deleteOne({ _id: existingVote._id });
         
-        // Update report counts
+        /** update report counts */
         if (voteType === 'upvote') {
           report.upvote = Math.max(0, report.upvote - 1);
         } else {
           report.downvote = Math.max(0, report.downvote - 1);
         }
       } else {
-        // If voting differently, update the vote
+        /** if the vote is different, update the vote count */
         existingVote.voteType = voteType;
         await existingVote.save();
 
-        // Update report counts
+        /** update report counts */
         if (voteType === 'upvote') {
           report.upvote += 1;
           report.downvote = Math.max(0, report.downvote - 1);
@@ -50,14 +50,14 @@ const handleVote = async (req, res) => {
         }
       }
     } else {
-      // Create new vote
+      /** if the user has yet to vote, create a new one */
       await Vote.create({
         user: userId,
         report: id,
         voteType: voteType
       });
 
-      // Update report counts
+      /** update report counts */
       if (voteType === 'upvote') {
         report.upvote += 1;
       } else {
@@ -67,7 +67,7 @@ const handleVote = async (req, res) => {
 
     await report.save();
 
-    // Get updated vote counts
+    /** get updated vote counts */
     const updatedReport = await Report.findOne({ id: id });
     const userVote = await Vote.findOne({ user: userId, report: id });
 
@@ -91,6 +91,7 @@ const getUserVote = async (req, res) => {
       return res.status(401).json({ error: "User not authenticated" });
     }
 
+    /** gets the user's vote */
     const vote = await Vote.findOne({ user: userId, report: id });
 
     return res.status(200).json({ voteType: vote ? vote.voteType : null });

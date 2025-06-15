@@ -1,37 +1,33 @@
 <!DOCTYPE html>
 <!--./tailwindcss -i input.css -o output.css --minify-->
 <html lang="it">
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="style/output.css" rel="stylesheet">
-        <title>Registrazione</title>
-        <script src="general.js"></script>
-    </head>
-    <body>
-        <div class="grid justify-items-center pt-8">        
-            <img src="media/logo.png" class="w-1/6 min-w-40"></img>
-        </div>
-        <div class="grid justify-items-center gap-y-2 pt-10">
-            <input type="text" placeholder="Nome" name="nfield" id="nfield" class="rounded-full border-2 w-80">
-            <input type="text" placeholder="Cognome" name="surfield" id="surfield" class="rounded-full border-2 w-80">
-            <select name="cirfield" id="cirfield" class="rounded-full border-2 w-80">
-                <option value="Gardolo">Gardolo</option>
-                <option value="Meano">Meano</option>
-                <option value="Bondone">Bondone</option>
-                <option value="Sardagna">Sardagna</option>
-                <option value="Ravina-Romagnano">Ravina-Romagnano</option>
-                <option value="Argentario">Argentario</option>
-                <option value="Povo">Povo</option>
-                <option value="Mattarello">Mattarello</option>
-                <option value="Villazzano">Villazzano</option>
-                <option value="Oltrefersina">Oltrefersina</option>
-                <option value="San Giuseppe-Santa Chiara">San Giuseppe-Santa Chiara</option>
-                <option value="Centro Storico-Piedicastello">Centro Storico-Piedicastello</option>
-            </select>
-            <input type="email" placeholder="E-mail" name="emfield" id="emfield" class="rounded-full border-2 w-80">
-            <input type="password" placeholder="Password" name="pswfield" id="pswfield" class="rounded-full border-2 w-80">
-            <input type="password" placeholder="Conferma Password" name="rpswfield" id="rpswfield" class="rounded-full border-2 w-80">
-            <button class="border-black border-2 rounded-full mt-10 bg-green-500 hover:bg-green-700 text-white font-bold p-3 w-40" onclick="registerUser()">Registrati</button>
-        </div>
-    </body>
+
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="icon" type="image/x-icon" href="favicon.ico">
+	<link href="style/output.css" rel="stylesheet">
+	<title>Registrazione</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+	<script src="general.js"></script>
+	<script src="loadselectoptions.js"></script>
+</head>
+
+<body>
+	<div class="grid justify-items-center pt-8">
+		<img src="media/logo.png" class="w-1/6 min-w-40"></img>
+	</div>
+	<div class="grid justify-items-center gap-y-2 pt-10">
+		<input type="text" placeholder="Nome" name="nfield" id="nfield" class="rounded-full border-2 w-80">
+		<input type="text" placeholder="Cognome" name="surfield" id="surfield" class="rounded-full border-2 w-80">
+		<select name="district" id="district" class="rounded-full border-2 w-80"></select>
+		<input type="email" placeholder="E-mail" name="emfield" id="emfield" class="rounded-full border-2 w-80">
+		<input type="password" placeholder="Password" name="pswfield" id="pswfield" class="rounded-full border-2 w-80">
+		<input type="password" placeholder="Conferma Password" name="rpswfield" id="rpswfield"
+			class="rounded-full border-2 w-80">
+		<button
+			class="border-black border-2 rounded-full mt-10 bg-green-500 hover:bg-green-700 text-white font-bold p-3 w-40"
+			onclick="registerUser()">Registrati</button>
+	</div>
+</body>
+
 </html>

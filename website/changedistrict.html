@@ -1,139 +1,79 @@
 <!DOCTYPE html>
 <!--./tailwindcss -i input.css -o output.css --minify-->
 <html lang="it">
+
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style/output.css" rel="stylesheet">
-    <script src="general.js"></script>
-    <link rel="stylesheet" href="style.css">
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
-        });
-    </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="style/output.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="general.js"></script>
+  <script src="menufunctions.js"></script>
+  <script src="loadselectoptions.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      checkAuth();
+    });
+  </script>
 
-    <title>Impostazioni</title>
+  <title>Impostazioni</title>
 </head>
+
 <body class="bg-gray-100">
-    <div class="bg-white">
-        <!-- Header -->
-        <div class="bg-green-500 flex justify-between items-center p-4">
-            <div class="text-white font-bold text-lg flex items-center">
-                <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
-                <span>Impostazioni</span>
-            </div>
-            <div>
-                <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
-            </div>
-        </div>
-        <div id="menu-container"></div>
-        
-        <!-- Titolo -->
-        <h2 class="text-center text-xl font-bold my-6">Circoscrizione di residenza</h2>
-        
-        <!-- Form Filtri -->
-        <div class="px-6 space-y-4 flex flex-col items-center">
-            <select name="cirfield" id="cirfield" class="rounded-full border-2 w-80">
-                <option value="Gardolo">Gardolo</option>
-                <option value="Meano">Meano</option>
-                <option value="Bondone">Bondone</option>
-                <option value="Sardagna">Sardagna</option>
-                <option value="Ravina-Romagnano">Ravina-Romagnano</option>
-                <option value="Argentario">Argentario</option>
-                <option value="Povo">Povo</option>
-                <option value="Mattarello">Mattarello</option>
-                <option value="Villazzano">Villazzano</option>
-                <option value="Oltrefersina">Oltrefersina</option>
-                <option value="San Giuseppe-Santa Chiara">San Giuseppe-Santa Chiara</option>
-                <option value="Centro Storico-Piedicastello">Centro Storico-Piedicastello</option>
-            </select>
-        </div>
-        
-        <!-- Pulsante Conferma -->
-        <div class="flex justify-center my-6">
-            <button onclick="changeDistrict()" class="bg-green-600 text-white font-bold py-2 px-6 rounded-full text-lg shadow-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500">Conferma</button>
-        </div>
-        <br>
+  <div class="bg-white">
+    <!-- Header -->
+    <div class="bg-green-500 flex justify-between items-center p-4">
+      <div class="text-white font-bold text-lg flex items-center">
+        <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+        <span>Impostazioni</span>
+      </div>
+      <div>
+        <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
+      </div>
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const menuButton = document.getElementById("menu-toggle");
-            const menuContainer = document.getElementById("menu-container");
-            let menuLoaded = false;
+    <div id="menu-container"></div>
 
-            // Load current district
-            fetch('/api/authentication/check', {
-                credentials: 'include'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.authenticated && data.user && data.user.id) {
-                    return fetch(`/api/users/${data.user.id}`, {
-                        credentials: 'include'
-                    });
-                }
-                throw new Error('User not authenticated');
-            })
-            .then(response => response.json())
-            .then(userData => {
-                if (userData && userData.circoscrizione) {
-                    document.getElementById('cirfield').value = userData.circoscrizione;
-                }
-            })
-            .catch(error => {
-                console.error('Error loading user data:', error);
-            });
+    <!-- Title -->
+    <h2 class="text-center text-xl font-bold my-6">Circoscrizione di residenza</h2>
 
-            menuButton.addEventListener("click", function (e) {
-                e.stopPropagation();
+    <!-- Filters form -->
+    <div class="px-6 space-y-4 flex flex-col items-center">
+      <select name="district" id="district" class="rounded-full border-2 w-80"></select>
+    </div>
 
-                if (!menuLoaded) {
-                    fetch("menu.html")
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`Errore HTTP: ${response.status} ${response.statusText}`);
-                            }
-                            return response.text();
-                        })
-                        .then(html => {
-                            menuContainer.innerHTML = html;
-                            menuLoaded = true;
-                            updateUserGreeting();
-                            showMenu();
-                        })
-                        .catch(error => {
-                            console.error("Errore nel caricamento del menu:", error);
-                        });
-                } else {
-                    if (menuContainer.classList.contains('open')) {
-                        hideMenu();
-                    } else {
-                        showMenu();
-                    }
-                }
-            });
-
-            document.addEventListener("click", function (e) {
-                if (!menuContainer.contains(e.target) && !menuButton.contains(e.target)) {
-                    hideMenu();
-                }
-            });
-
-            function showMenu() {
-                menuContainer.style.display = 'block';
-                menuContainer.classList.add('open');
-            }
-
-            function hideMenu() {
-                menuContainer.classList.remove('open');
-                if (!menuContainer.classList.contains('open')) {
-                    menuContainer.style.display = 'none';
-                    menuContainer.innerHTML = '';
-                }
-
-                menuLoaded = false;
-            }
-        });
-    </script>
+    <!-- Confirm button -->
+    <div class="flex justify-center my-6">
+      <button onclick="changeDistrict()" class="bg-green-600 text-white font-bold py-2 px-6 rounded-full text-lg shadow-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500">Conferma</button>
+    </div>
+    <br>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // load current district
+      fetch('/api/authentication/check', {
+        credentials: 'include'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.authenticated && data.user && data.user.id) {
+          return fetch(`/api/users/${data.user.id}`, {
+            credentials: 'include'
+          });
+        }
+        throw new Error('User not authenticated');
+      })
+      .then(response => response.json())
+      .then(userData => {
+        if (userData && userData.district) {
+          document.getElementById('district').value = userData.district;
+        }
+      })
+      .catch(error => {
+        console.error('Error loading user data:', error);
+      });
+    });
+  </script>
 </body>
+
 </html>

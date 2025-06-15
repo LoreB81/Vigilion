@@ -1,315 +1,223 @@
 <!DOCTYPE html>
 <!--./tailwindcss -i input.css -o output.css --minify-->
 <html lang="it">
+
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="style/output.css" rel="stylesheet">
-    <script src="general.js"></script>
-    <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="style/output.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="general.js"></script>
+  <script src="menufunctions.js"></script>
+  <script src="loadselectoptions.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      checkAuth();
+    });
+  </script>
 
-    <title>Statistiche</title>
+  <title>Statistiche</title>
 </head>
+
 <body class="bg-gray-100">
-    <div class="bg-white">
-        <!-- Header -->
-        <div class="bg-green-500 flex justify-between items-center p-4">
-            <div class="text-white font-bold text-lg flex items-center">
-                <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
-                <a href="index.html"><span>Vigilion</span></a>
-            </div>
-            <div>
-                <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
-            </div>
-        </div>
-        <div id="menu-container"></div>
-        
-        <!-- Titolo -->
-        <h2 class="text-center text-xl font-bold my-6">Statistiche</h2>
-        
-        <!-- Form Filtri -->
-        <div class="px-6 space-y-4 flex flex-col items-center">
-            <div class="flex space-x-2">
-                <input type="date" id="startDate" class="w-1/2 p-2 border rounded-lg shadow-sm">
-                <input type="date" id="endDate" class="w-1/2 p-2 border rounded-lg shadow-sm">
-            </div>
-            <select name="tipfield" id="tipfield" class="rounded-full border-2 w-80">
-                <option value="">Tutte le tipologie</option>
-                <option value="Furto">Furto</option>
-                <option value="Aggressione">Aggressione</option>
-                <option value="Molestia">Molestia</option>
-                <option value="Soggetto armato">Soggetto armato</option>
-                <option value="Soggetto alterato">Soggetto alterato</option>
-                <option value="Altro">Altro</option>
-            </select>
-            <select name="cirfield" id="cirfield" class="rounded-full border-2 w-80">
-                <option value="">Tutte le circoscrizioni</option>
-                    <option value="Gardolo">Gardolo</option>
-                    <option value="Meano">Meano</option>
-                    <option value="Bondone">Bondone</option>
-                    <option value="Sardagna">Sardagna</option>
-                    <option value="Ravina-Romagnano">Ravina-Romagnano</option>
-                    <option value="Argentario">Argentario</option>
-                    <option value="Povo">Povo</option>
-                    <option value="Mattarello">Mattarello</option>
-                    <option value="Villazzano">Villazzano</option>
-                    <option value="Oltrefersina">Oltrefersina</option>
-                    <option value="San Giuseppe-Santa Chiara">San Giuseppe-Santa Chiara</option>
-                    <option value="Centro Storico-Piedicastello">Centro Storico-Piedicastello</option>
-            </select>
-        </div>
-        
-        <!-- Pulsante Applica -->
-        <div class="flex justify-center my-6">
-            <button class="bg-green-600 text-white font-bold py-2 px-6 rounded-full text-lg shadow-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500" id="apply-filters">Applica</button>
-        </div>
-        <br>
-        <!-- Contenitore per il resoconto delle statistiche -->
-        <div id="stats-summary" class="px-6 py-4"></div>
+  <div class="bg-white">
+    <!-- Header -->
+    <div class="bg-green-500 flex justify-between items-center p-4">
+      <div class="text-white font-bold text-lg flex items-center">
+        <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+        <a href="index.html"><span>Vigilion</span></a>
+      </div>
+      <div>
+        <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
+      </div>
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const menuButton = document.getElementById("menu-toggle");
-            const menuContainer = document.getElementById("menu-container");
-            let menuLoaded = false;
+    <div id="menu-container"></div>
 
-            menuButton.addEventListener("click", function (e) {
-                e.stopPropagation();
+    <!-- Title -->
+    <h2 class="text-center text-xl font-bold my-6">Statistiche</h2>
 
-                if (!menuLoaded) {
-                    fetch("menu.html")
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`Errore HTTP: ${response.status} ${response.statusText}`);
-                            }
-                            return response.text();
-                        })
-                        .then(html => {
-                            menuContainer.innerHTML = html;
-                            menuLoaded = true;
-                            updateUserGreeting();
-                            showMenu();
-                        })
-                        .catch(error => {
-                            console.error("Errore nel caricamento del menu:", error);
-                        });
-                } else {
-                    if (menuContainer.classList.contains('open')) {
-                        hideMenu();
-                    } else {
-                        showMenu();
-                    }
-                }
-            });
+    <!-- Filters form -->
+    <div class="px-4 space-y-2">
+      <div class="flex space-x-2">
+        <input type="date" id="startDate" class="w-1/2 p-2 border rounded-full shadow-sm">
+        <input type="date" id="endDate" class="w-1/2 p-2 border rounded-full shadow-sm">
+      </div>
+      <select name="typology" id="typology" class="rounded-full border-2 w-full">
+        <option value="">Tutte le tipologie</option>
+      </select>
+      <select name="district" id="district" class="rounded-full border-2 w-full">
+        <option value="">Tutte le circoscrizioni</option>
+      </select>
+    </div>
 
-            document.addEventListener("click", function (e) {
-                if (!menuContainer.contains(e.target) && !menuButton.contains(e.target)) {
-                    hideMenu();
-                }
-            });
+    <!-- Apply button -->
+    <div class="flex justify-center my-6">
+      <button
+        class="bg-green-600 text-white font-bold py-2 px-6 rounded-full text-lg shadow-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500"
+        id="apply-filters">Applica</button>
+    </div>
+    <br>
+    <!-- Stats summary -->
+    <div id="stats-summary" class="px-6 py-4"></div>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // retrieve filter values
+      function getFilters() {
+        return {
+          startDate: document.getElementById('startDate').value,
+          endDate: document.getElementById('endDate').value,
+          typology: document.getElementById('typology').value,
+          district: document.getElementById('district').value
+        };
+      }
 
-            function showMenu() {
-                menuContainer.style.display = 'block';
-                menuContainer.classList.add('open');
-            }
+      // calculate average for every typology
+      function calculateAverages(allReports) {
+        const typologies = ["Furto", "Aggressione", "Molestia", "Soggetto armato", "Soggetto alterato"];
+        let counts = {};
+        let circoscrizioni = new Set();
 
-            function hideMenu() {
-                menuContainer.classList.remove('open');
-                if (!menuContainer.classList.contains('open')) {
-                    menuContainer.style.display = 'none';
-                    menuContainer.innerHTML = '';
-                }
+        typologies.forEach(t => counts[t] = 0);
 
-                menuLoaded = false;
-            }
-
-            // Funzione per ottenere i valori dei filtri
-            function getFilters() {
-                return {
-                    startDate: document.getElementById('startDate').value,
-                    endDate: document.getElementById('endDate').value,
-                    typology: document.getElementById('tipfield').value,
-                    district: document.getElementById('cirfield').value
-                };
-            }
-
-            // Funzione per calcolare la media per tipologia
-            function calculateAverages(allReports) {
-                const typologies = ["Furto", "Aggressione", "Molestia", "Soggetto armato", "Soggetto alterato"];
-                let counts = {};
-                let circoscrizioni = new Set();
-
-                typologies.forEach(t => counts[t] = 0);
-
-                allReports.forEach(r => {
-                    if (typologies.includes(r.typology)) {
-                        counts[r.typology]++;
-                    }
-                    if (r.district) circoscrizioni.add(r.district);
-                });
-
-                let averages = {};
-                typologies.forEach(t => {
-                    averages[t] = circoscrizioni.size > 0 ? Math.round(counts[t] / circoscrizioni.size) : 0;
-                });
-                return averages;
-            }
-
-            // Funzione per formattare la data in mm-dd-yyyy
-            function formatDate(dateStr) {
-                if (!dateStr) return '';
-                const d = new Date(dateStr);
-                const mm = String(d.getMonth() + 1).padStart(2, '0');
-                const dd = String(d.getDate()).padStart(2, '0');
-                const yyyy = d.getFullYear();
-                return `${mm}-${dd}-${yyyy}`;
-            }
-
-            // Funzione per formattare la data e ora in mm-dd-yyyy hh:ii
-            function formatDateTime(dateStr) {
-                if (!dateStr) return '';
-                const d = new Date(dateStr);
-                const mm = String(d.getMonth() + 1).padStart(2, '0');
-                const dd = String(d.getDate()).padStart(2, '0');
-                const yyyy = d.getFullYear();
-                const hh = String(d.getHours()).padStart(2, '0');
-                const ii = String(d.getMinutes()).padStart(2, '0');
-                return `${mm}-${dd}-${yyyy} ${hh}:${ii}`;
-            }
-
-            // Funzione per mostrare il resoconto
-            function renderStats(filteredReports, averages, filters) {
-                const typologies = [
-                    { key: "Furto", label: "Furti" },
-                    { key: "Aggressione", label: "Aggressioni" },
-                    { key: "Molestia", label: "Molestie" },
-                    { key: "Soggetto armato", label: "Soggetti armati" },
-                    { key: "Soggetto alterato", label: "Soggetti alterati" }
-                ];
-
-                // Conta per tipologia nei filtri selezionati
-                let counts = {};
-                typologies.forEach(t => counts[t.key] = 0);
-                filteredReports.forEach(r => {
-                    if (counts[r.typology] !== undefined) counts[r.typology]++;
-                });
-
-                // Trova la segnalazione più votata
-                let topReport = null;
-                filteredReports.forEach(r => {
-                    if (!topReport || (r.upvote - r.downvote) > (topReport.upvote - topReport.downvote)) {
-                        topReport = r;
-                    }
-                });
-
-                // Resoconto
-                let html = `
-                    <div class="border rounded-lg p-4 bg-white shadow">
-                        <div class="font-bold mb-2">${filters.district || "Tutte le circoscrizioni"}</div>
-                        <div class="text-sm mb-2">${filters.startDate ? formatDate(filters.startDate) : "Inizio"} - ${filters.endDate ? formatDate(filters.endDate) : "Fine"}</div>
-                        <ul class="mb-2">
-                `;
-                typologies.forEach(t => {
-                    html += `<li>
-                        <b>${t.label}:</b> ${counts[t.key]} 
-                        <span class="text-xs text-gray-500">(Media: ${averages[t.key]})</span>
-                    </li>`;
-                });
-                html += `</ul>`;
-
-                // Segnalazione più votata
-                if (topReport) {
-                    const userName = topReport.userName ? topReport.userName.split(' ')[0] : 'Utente';
-                    const userInitial = topReport.userName ? topReport.userName.split(' ')[1]?.charAt(0) || '' : '';
-
-                    html += `
-                        <div class="mt-4">
-                            <div class="font-semibold">Segnalazione più votata:</div>
-                            <div class="block w-full text-left border rounded-lg p-3 mt-2 hover:bg-gray-100 transition">
-                                <a href="reportdetails.html?id=${topReport.id}" class="no-underline text-inherit">
-                                    <div class="flex justify-between items-center">
-                                        <span class="font-bold">${userName} ${userInitial}.</span>
-                                        <span class="text-xs">${topReport.createdtime ? formatDateTime(topReport.createdtime) : ''}</span>
-                                    </div>
-                                    <div class="text-sm mt-1 mb-2">${topReport.notes && topReport.notes.length > 60 ? topReport.notes.slice(0, 60) + "..." : (topReport.notes || "")}</div>
-                                </a>
-                                <div class="flex space-x-4 mt-2">
-                                    <button class="flex items-center text-green-600 upvote-btn" data-id="${topReport.id}">👍<span class="ml-1 upvote-count">${topReport.upvote}</span></button>
-                                    <button class="flex items-center text-red-600 downvote-btn" data-id="${topReport.id}">👎<span class="ml-1 downvote-count">${topReport.downvote}</span></button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    html += `<div class="mt-4 text-gray-500">Nessuna segnalazione trovata.</div>`;
-                }
-
-                html += `</div>`;
-                document.getElementById('stats-summary').innerHTML = html;
-
-                // Gestione voti per la segnalazione più votata
-                if (topReport) {
-                    const upvoteBtn = document.querySelector('.upvote-btn');
-                    const downvoteBtn = document.querySelector('.downvote-btn');
-                    const upvoteCount = document.querySelector('.upvote-count');
-                    const downvoteCount = document.querySelector('.downvote-count');
-                    if (upvoteBtn && downvoteBtn && upvoteCount && downvoteCount) {
-                        upvoteBtn.addEventListener('click', async function (e) {
-                            e.preventDefault();
-                            const resp = await fetch(`/api/reports/${topReport.id}/vote`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                credentials: 'include',
-                                body: JSON.stringify({ voteType: 'upvote' })
-                            });
-                            if (resp.ok) {
-                                const data = await resp.json();
-                                upvoteCount.textContent = data.upvotes;
-                                downvoteCount.textContent = data.downvotes;
-                            }
-                        });
-                        downvoteBtn.addEventListener('click', async function (e) {
-                            e.preventDefault();
-                            const resp = await fetch(`/api/reports/${topReport.id}/vote`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                credentials: 'include',
-                                body: JSON.stringify({ voteType: 'downvote' })
-                            });
-                            if (resp.ok) {
-                                const data = await resp.json();
-                                upvoteCount.textContent = data.upvotes;
-                                downvoteCount.textContent = data.downvotes;
-                            }
-                        });
-                    }
-                }
-            }
-
-            // Gestione click su "Applica"
-            document.getElementById('apply-filters').addEventListener('click', async function () {
-                const filters = getFilters();
-
-                // Ottieni tutte le segnalazioni per la media
-                const allReportsResp = await fetch('/api/reports', { credentials: 'include' });
-                const allReports = await allReportsResp.json();
-
-                // Ottieni le segnalazioni filtrate
-                const filteredResp = await fetch('/api/reports/filtered', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify(filters)
-                });
-                let filteredReports = await filteredResp.json();
-                if (filteredReports.error) filteredReports = [];
-
-                // Calcola le medie
-                const averages = calculateAverages(allReports);
-
-                // Mostra il resoconto
-                renderStats(filteredReports, averages, filters);
-            });
+        allReports.forEach(r => {
+          if (typologies.includes(r.typology)) {
+            counts[r.typology]++;
+          }
+          if (r.district) circoscrizioni.add(r.district);
         });
-    </script>
+
+        let averages = {};
+        typologies.forEach(t => {
+          averages[t] = circoscrizioni.size > 0 ? Math.round(counts[t] / circoscrizioni.size) : 0;
+        });
+        return averages;
+      }
+
+      // format date dd-mm-yyyy
+      function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${dd}-${mm}-${yyyy}`;
+      }
+
+      // format datetime dd-mm-yyyy hh:ii
+      function formatDateTime(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        const hh = String(d.getHours()).padStart(2, '0');
+        const ii = String(d.getMinutes()).padStart(2, '0');
+        return `${dd}-${mm}-${yyyy} ${hh}:${ii}`;
+      }
+
+      // render statistics
+      function renderStats(filteredReports, averages, filters) {
+        const typologies = [
+          { key: "Furto", label: "Furti" },
+          { key: "Aggressione", label: "Aggressioni" },
+          { key: "Molestia", label: "Molestie" },
+          { key: "Soggetto armato", label: "Soggetti armati" },
+          { key: "Soggetto alterato", label: "Soggetti alterati" }
+        ];
+
+        // count per typology
+        let counts = {};
+        typologies.forEach(t => counts[t.key] = 0);
+        filteredReports.forEach(r => {
+          if (counts[r.typology] !== undefined) counts[r.typology]++;
+        });
+
+        // search for the most upvoted report
+        let topReport = null;
+        filteredReports.forEach(r => {
+          if (!topReport || (r.upvote - r.downvote) > (topReport.upvote - topReport.downvote)) {
+            topReport = r;
+          }
+        });
+
+        // render stats
+        let html = `
+          <div class="border rounded-lg p-4 bg-white shadow">
+            <div class="font-bold mb-2">${filters.district || "Tutte le circoscrizioni"}</div>
+            <div class="text-sm mb-2">${filters.startDate ? formatDate(filters.startDate) : "Inizio"} - ${filters.endDate ? formatDate(filters.endDate) : "Fine"}</div>
+            <ul class="mb-2">
+        `;
+        typologies.forEach(t => {
+          html += `<li>
+                      <b>${t.label}:</b> ${counts[t.key]} 
+                      <span class="text-xs text-gray-500">(Media: ${averages[t.key]})</span>
+                    </li>`;
+        });
+        html += `</ul>`;
+
+        // render most upvoted report
+        if (topReport) {
+          const userName = topReport.userName ? topReport.userName.split(' ')[0] : 'Utente';
+          const userInitial = topReport.userName ? topReport.userName.split(' ')[1]?.charAt(0) || '' : '';
+
+          html += `
+            <div class="mt-4">
+              <div class="font-semibold">Segnalazione più votata:</div>
+              <div class="block w-full text-left border rounded-lg p-3 mt-2 hover:bg-gray-100 transition">
+                <a href="reportdetails.html?id=${topReport.id}" class="no-underline text-inherit">
+                  <div class="flex justify-between items-center">
+                    <span class="font-bold">${userName} ${userInitial}.</span>
+                    <span class="text-xs">${topReport.createdtime ? formatDateTime(topReport.createdtime) : ''}</span>
+                  </div>
+                  <div class="text-sm mt-1 mb-2">${topReport.notes}</div>
+                </a>
+                <div class="flex space-x-4 mt-2">
+                  <button class="flex items-center text-green-600 upvote-btn" id="upvote-${topReport.id}">👍<span class="ml-1" id="upvote-count-${topReport.id}">${topReport.upvote}</span></button>
+                  <button class="flex items-center text-red-600 downvote-btn" id="downvote-${topReport.id}">👎<span class="ml-1" id="downvote-count-${topReport.id}">${topReport.downvote}</span></button>
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          html += `<div class="mt-4 text-gray-500">Nessuna segnalazione trovata.</div>`;
+        }
+
+        html += `</div>`;
+        document.getElementById('stats-summary').innerHTML = html;
+
+        if (topReport) {
+          initializeVoteButtons(topReport.id);
+        }
+      }
+
+      // click on apply
+      document.getElementById('apply-filters').addEventListener('click', async function () {
+        const filters = getFilters();
+
+        // retrieve all reports for average calculations
+        const allReportsResp = await fetch('/api/reports', { credentials: 'include' });
+        const allReports = await allReportsResp.json();
+
+        // retrieve filtered reports
+        const filteredResp = await fetch('/api/reports/filtered', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(filters)
+        });
+        let filteredReports = await filteredResp.json();
+        if (filteredReports.error) filteredReports = [];
+
+        // calculate averages
+        const averages = calculateAverages(allReports);
+
+        // render statistics
+        renderStats(filteredReports, averages, filters);
+      });
+    });
+  </script>
 </body>
+
 </html>

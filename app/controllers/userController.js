@@ -11,13 +11,13 @@ const getUserData = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Return user data without sensitive information
+    /** return user's data without sensitive information */
     const userData = {
       id: user.id,
       firstname: user.firstname,
       lastname: user.lastname,
       email: user.email,
-      circoscrizione: user.circoscrizione
+      district: user.district
     };
 
     return res.status(200).json(userData);
@@ -60,10 +60,10 @@ const registerUser = async (req, res) => {
       return res.status(400).json({ error: "Invalid password" });
     }
 
-    // Generate UUID for the user
+    /** generate uuid for the user */
     const userId = uuidv4();
     
-    // Hash the password using SHA-256 with the UUID as salt
+    /** hash the password */
     const hashedPassword = hashPassword(req.body.password, userId);
 
     const newUser = new User({
@@ -72,7 +72,7 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
       firstname: req.body.firstname,
       lastname: req.body.lastname,
-      circoscrizione: req.body.circoscrizione
+      district: req.body.district
     });
 
     const savedUser = await newUser.save();
@@ -84,57 +84,57 @@ const registerUser = async (req, res) => {
 
 const changePassword = async (req, res) => {
   try {
-    // Get user ID from the authenticated session
+    /** get the user's ID from cookies */
     const userId = req.cookies.logged_user;
     
-    // Find the user
+    /** find the user using the ID retrieved before */
     const user = await User.findOne({ id: userId });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Hash the old password with the user's UUID as salt
+    /** hash the old password */
     const hashedOldPassword = hashPassword(req.body.oldPassword, userId);
 
-    // Verify old password
+    /** verify old password */
     if (hashedOldPassword !== user.password) {
-      return res.status(400).json({ error: "Vecchia password non corretta" });
+      return res.status(400).json({ error: "Old password is incorrect" });
     }
 
-    // Validate new password
+    /** validate new password */
     if (!checkIfValidPassword(req.body.newPassword)) {
-      return res.status(400).json({ error: "La nuova password non rispecchia i requisiti di sicurezza" });
+      return res.status(400).json({ error: "The new password does not match the security requirements" });
     }
 
-    // Hash the new password with the user's UUID as salt
+    /** hash the new password */
     const hashedNewPassword = hashPassword(req.body.newPassword, userId);
 
-    // Update the password
+    /** update the password */
     user.password = hashedNewPassword;
     await user.save();
 
     return res.status(200).json({
       success: true,
-      message: "Password modificata con successo"
+      message: "Password modified successfully"
     });
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ error: "Errore durante la modifica della password", details: err.message });
+    return res.status(500).json({ error: "Error while changing password", details: err.message });
   }
 };
 
 const changeDistrict = async (req, res) => {
   try {
-    // Get user ID from the authenticated session
+    /** get the user's ID from cookies */
     const userId = req.cookies.logged_user;
     
-    // Find the user
+    /** find the user using the ID retrieved before */
     const user = await User.findOne({ id: userId });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    // Validate district
+    /** checks valid districts */
     const validDistricts = [
       "Gardolo", "Meano", "Bondone", "Sardagna", "Ravina-Romagnano",
       "Argentario", "Povo", "Mattarello", "Villazzano", "Oltrefersina",
@@ -142,20 +142,20 @@ const changeDistrict = async (req, res) => {
     ];
 
     if (!validDistricts.includes(req.body.district)) {
-      return res.status(400).json({ error: "Circoscrizione non valida" });
+      return res.status(400).json({ error: "Invalid district" });
     }
 
-    // Update the district
-    user.circoscrizione = req.body.district;
+    /** update the district */
+    user.district = req.body.district;
     await user.save();
 
     return res.status(200).json({
       success: true,
-      message: "Circoscrizione modificata con successo"
+      message: "District changed successfully"
     });
   } catch (err) {
     console.log(err);
-    return res.status(500).json({ error: "Errore durante la modifica della circoscrizione", details: err.message });
+    return res.status(500).json({ error: "Error while changing district", details: err.message });
   }
 };
 
@@ -169,12 +169,21 @@ function hashPassword(password, salt) {
   return crypto.createHash('sha256').update(password + salt).digest('hex');
 }
 
-/* TODO: match the password validation with the requirements in D1 document */
+/**
+ * Checks whether the password is valid or not using a regex
+ * @param {string} password - Plain password
+ * @returns {boolean} - True if the password is valid
+ */
 function checkIfValidPassword(password) {
   var re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d#@$!%*?&]{8,}$/;
   return re.test(password);
 }
 
+/**
+ * Checks whether the email is valid or not using a regex
+ * @param {email} email - User's email
+ * @returns {boolean} - True if the email is in valid format
+ */
 function checkIfEmailInString(email) {
   var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(email);

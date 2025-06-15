@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const AutoIncrement = require('mongoose-sequence')(mongoose);
 
+/** report schema */
 const ReportSchema = new mongoose.Schema({
   user: {type: String, required: true},
   typology: {type: String, required: true},

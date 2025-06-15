@@ -18,6 +18,7 @@ const getSingleReport = async (req, res) => {
 
 const getReports = async (req, res) => {
   try {
+    /** querying the db without where clauses, to return all reports */
     const reports = await Report.find({});
 
     if (!reports || reports.length === 0) {
@@ -32,7 +33,7 @@ const getReports = async (req, res) => {
 
 const getLatestReports = async (req, res) => {
   try {
-    // Find the latest 5 reports, sorted by createdtime in descending order
+    /** find the latest 5 reports, sorted by descending createdtime */
     const latestReports = await Report.find({})
       .sort({ createdtime: -1 })
       .limit(5);
@@ -79,40 +80,48 @@ const getFilteredReports = async (req, res) => {
   try {
     const { startDate, endDate, district, typology } = req.body;
     
-    // Build query object
+    /** query object */
     const query = {};
     
-    // Add date range filter if provided
+    /** add date range filter if provided */
     if (startDate || endDate) {
       query.createdtime = {};
       if (startDate) {
-        query.createdtime.$gte = startDate;
+        // Convert startDate to string format "YYYY-MM-DD HH:mm" for comparison
+        const startDateStr = new Date(startDate).toISOString().slice(0, 10) + ' ' + 
+                           new Date(startDate).toTimeString().slice(0, 5);
+        query.createdtime.$gte = startDateStr;
       }
       if (endDate) {
-        query.createdtime.$lte = endDate;
+        // Set end date to end of day (23:59) to make it inclusive
+        const endDateTime = new Date(endDate);
+        endDateTime.setHours(23, 59, 59);
+        const endDateStr = endDateTime.toISOString().slice(0, 10) + ' ' + 
+                         endDateTime.toTimeString().slice(0, 5);
+        query.createdtime.$lte = endDateStr;
       }
     }
     
-    // Add district filter if provided
+    /** add district filter if provided */
     if (district) {
       query.district = district;
     }
     
-    // Add typology filter if provided
+    /** add typology filter if provided */
     if (typology) {
       query.typology = typology;
     }
     
-    // Execute query and populate user data
+    /** execute query */
     const reports = await Report.find(query)
       .sort({ createdtime: -1 })
-      .lean(); // Use lean() for better performance
+      .lean();
     
     if (!reports || reports.length === 0) {
       return res.status(200).json({ error: "No reports found matching the criteria" });
     }
 
-    // Get user data for each report
+    /** get user data for each report */
     const reportsWithUserData = await Promise.all(reports.map(async (report) => {
       const userQuery = {id: report.user};
       const user = await User.findOne(userQuery);

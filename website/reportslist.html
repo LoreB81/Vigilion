@@ -1,209 +1,151 @@
 <!DOCTYPE html>
 <!--./tailwindcss -i input.css -o output.css --minify-->
 <html lang="it">
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link href="style/output.css" rel="stylesheet">
-        <script src="general.js"></script>
-        <link rel="stylesheet" href="style.css">
 
-        <title>Segnalazioni</title>
-    </head>
-    <body class="bg-gray-100">
-        <div class="bg-white">
-            <!-- Header -->
-            <div class="bg-green-500 flex justify-between items-center p-4">
-                <div class="text-white font-bold text-lg flex items-center">
-                    <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
-                    <a href="index.html"><span>Vigilion</span></a>
-                </div>
-                <div>
-                    <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
-                </div>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="style/output.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="general.js"></script>
+  <script src="menufunctions.js"></script>
+  <script src="loadselectoptions.js"></script>
+  <link rel="stylesheet" href="style.css">
+
+  <title>Segnalazioni</title>
+</head>
+
+<body class="bg-gray-100">
+  <div class="bg-white">
+    <!-- Header -->
+    <div class="bg-green-500 flex justify-between items-center p-4">
+      <div class="text-white font-bold text-lg flex items-center">
+        <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+        <a href="index.html"><span>Vigilion</span></a>
+      </div>
+      <div>
+        <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
+      </div>
+    </div>
+    <div id="menu-container"></div>
+
+    <!-- Title -->
+    <h2 class="text-center text-xl font-bold my-4">Segnalazioni</h2>
+
+    <!-- Filters -->
+    <div class="px-4 space-y-2">
+      <div class="flex space-x-2">
+        <input type="date" id="startDate" class="w-1/2 p-2 border rounded-full shadow-sm">
+        <input type="date" id="endDate" class="w-1/2 p-2 border rounded-full shadow-sm">
+      </div>
+      <select id="district" class="rounded-full border-2 w-full">
+        <option value="">Tutte le circoscrizioni</option>
+      </select>
+      <select id="typology" class="rounded-full border-2 w-full">
+        <option value="">Tutte le tipologie</option>
+      </select>
+    </div>
+
+    <!-- Reports list -->
+    <div id="rlist" class="p-4 space-y-4">
+      <!-- Reports will be dynamically inserted here -->
+    </div>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // filter functionality
+      const startDate = document.getElementById('startDate');
+      const endDate = document.getElementById('endDate');
+      const districtFilter = document.getElementById('district');
+      const typologyFilter = document.getElementById('typology');
+
+      // add event listeners to all filters
+      [startDate, endDate, districtFilter, typologyFilter].forEach(filter => {
+        filter.addEventListener('change', fetchFilteredReports);
+      });
+
+      // initial load of reports
+      fetchFilteredReports();
+    });
+
+    async function fetchFilteredReports() {
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+      const district = document.getElementById('district').value;
+      const typology = document.getElementById('typology').value;
+
+      try {
+        const response = await fetch('http://localhost:8000/api/reports/filtered', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            startDate,
+            endDate,
+            district,
+            typology
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch reports');
+        }
+
+        const reports = await response.json();
+        displayReports(reports);
+      } catch (error) {
+        console.error('Error fetching reports:', error);
+      }
+    }
+
+    function displayReports(reports) {
+      const reportsList = document.getElementById('rlist');
+      reportsList.innerHTML = ''; // clear existing reports
+
+      if (reports.length > 0) {
+        reports.forEach(report => {
+          const reportElement = document.createElement('div');
+          reportElement.className = 'block w-full text-left border rounded-lg p-3 mt-2 hover:bg-gray-100 transition';
+
+          // get user's first name and last name initial
+          const userName = report.userName ? report.userName.split(' ')[0] : 'Utente';
+          const userInitial = report.userName ? report.userName.split(' ')[1]?.charAt(0) || '' : '';
+
+          const createdtime = new Date(report.createdtime);
+          const day = createdtime.toLocaleDateString("it-IT", { day: '2-digit' });
+          const month = createdtime.toLocaleDateString("it-IT", { month: '2-digit' });
+          const year = createdtime.toLocaleDateString("it-IT", { year: 'numeric' });
+          const hour = createdtime.toLocaleTimeString("it-IT", { hour: '2-digit', minute: '2-digit' });
+
+          const formattedTime = `${day}/${month}/${year} ${hour}`;
+
+          reportElement.innerHTML = `
+            <a href="reportdetails.html?id=${report.id}" class="no-underline text-inherit">
+              <div class="flex justify-between items-center">
+                <span class="font-bold">${userName} ${userInitial}.</span>
+                <span class="text-xs">${formattedTime}</span>
+              </div>
+              <div class="text-sm text-gray-600 mt-1">
+                <span class="font-semibold">${report.typology}</span> - ${report.district}
+              </div>
+              <div class="text-sm mt-1 mb-2">${report.notes}</div>
+            </a>
+            <div class="flex space-x-4 mt-2">
+              <button class="flex items-center text-green-600 upvote-btn" id="upvote-${report.id}">👍<span class="ml-1" id="upvote-count-${report.id}">${report.upvote}</span></button>
+              <button class="flex items-center text-red-600 downvote-btn" id="downvote-${report.id}">👎<span class="ml-1" id="downvote-count-${report.id}">${report.downvote}</span></button>
             </div>
-            <div id="menu-container"></div>
-            
-            <!-- Titolo -->
-            <h2 class="text-center text-xl font-bold my-4">Segnalazioni</h2>
-            
-            <!-- Filtro -->
-            <div class="px-4 space-y-2">
-                <div class="flex space-x-2">
-                    <input type="date" id="startDate" class="w-1/2 p-2 border rounded-lg shadow-sm">
-                    <input type="date" id="endDate" class="w-1/2 p-2 border rounded-lg shadow-sm">
-                </div>
-                <select id="districtFilter" class="w-full p-2 border rounded-lg shadow-sm">
-                    <option value="">Tutte le circoscrizioni</option>
-                    <option value="Gardolo">Gardolo</option>
-                    <option value="Meano">Meano</option>
-                    <option value="Bondone">Bondone</option>
-                    <option value="Sardagna">Sardagna</option>
-                    <option value="Ravina-Romagnano">Ravina-Romagnano</option>
-                    <option value="Argentario">Argentario</option>
-                    <option value="Povo">Povo</option>
-                    <option value="Mattarello">Mattarello</option>
-                    <option value="Villazzano">Villazzano</option>
-                    <option value="Oltrefersina">Oltrefersina</option>
-                    <option value="San Giuseppe-Santa Chiara">San Giuseppe-Santa Chiara</option>
-                    <option value="Centro Storico-Piedicastello">Centro Storico-Piedicastello</option>
-                </select>
-                <select id="typologyFilter" class="w-full p-2 border rounded-lg shadow-sm">
-                    <option value="">Tutte le tipologie</option>
-                    <option value="Furto">Furto</option>
-                    <option value="Aggressione">Aggressione</option>
-                    <option value="Molestia">Molestia</option>
-                    <option value="Soggetto armato">Soggetto armato</option>
-                    <option value="Soggetto alterato">Soggetto alterato</option>
-                    <option value="Altro">Altro</option>
-                </select>
-            </div>
-            
-            <!-- Lista Segnalazioni -->
-            <div id="rlist" class="p-4 space-y-4">
-                <!-- Reports will be dynamically inserted here -->
-            </div>
-        </div>
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                const menuButton = document.getElementById("menu-toggle");
-                const menuContainer = document.getElementById("menu-container");
-                let menuLoaded = false;
-    
-                menuButton.addEventListener("click", function (e) {
-                    e.stopPropagation();
-    
-                    if (!menuLoaded) {
-                        fetch("menu.html")
-                            .then(response => response.text())
-                            .then(html => {
-                                menuContainer.innerHTML = html;
-                                menuLoaded = true;
-                                updateUserGreeting();
-                                showMenu();
-                            })
-                            .catch(error => {
-                                console.error("Errore nel caricamento del menu:", error);
-                            });
-                    } else {
-                        if (menuContainer.classList.contains('open')) {
-                            hideMenu();
-                        } else {
-                            showMenu();
-                        }
-                    }
-                });
-    
-                document.addEventListener("click", function (e) {
-                    if (!menuContainer.contains(e.target) && !menuButton.contains(e.target)) {
-                        hideMenu();
-                    }
-                });
-    
-                function showMenu() {
-                    menuContainer.classList.add('open');
-                }
-    
-                function hideMenu() {
-                    menuContainer.classList.remove('open');
-                }
+          `;
 
-                // Filter functionality
-                const startDate = document.getElementById('startDate');
-                const endDate = document.getElementById('endDate');
-                const districtFilter = document.getElementById('districtFilter');
-                const typologyFilter = document.getElementById('typologyFilter');
+          reportsList.appendChild(reportElement);
 
-                // Add event listeners to all filters
-                [startDate, endDate, districtFilter, typologyFilter].forEach(filter => {
-                    filter.addEventListener('change', fetchFilteredReports);
-                });
+          // initialize vote buttons
+          initializeVoteButtons(report.id);
+        });
+      }
+    }
+  </script>
+</body>
 
-                // Initial load of reports
-                fetchFilteredReports();
-            });
-
-            async function fetchFilteredReports() {
-                const startDate = document.getElementById('startDate').value;
-                const endDate = document.getElementById('endDate').value;
-                const district = document.getElementById('districtFilter').value;
-                const typology = document.getElementById('typologyFilter').value;
-
-                try {
-                    const response = await fetch('http://localhost:8000/api/reports/filtered', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        credentials: 'include',
-                        body: JSON.stringify({
-                            startDate,
-                            endDate,
-                            district,
-                            typology
-                        })
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch reports');
-                    }
-
-                    const reports = await response.json();
-                    displayReports(reports);
-                } catch (error) {
-                    console.error('Error fetching reports:', error);
-                }
-            }
-
-            function displayReports(reports) {
-                const reportsList = document.getElementById('rlist');
-                reportsList.innerHTML = ''; // Clear existing reports
-
-                if (reports.length > 0) {
-                    reports.forEach(report => {
-                        const reportElement = document.createElement('div');
-                        reportElement.className = 'border rounded-lg p-3 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors';
-                        reportElement.onclick = () => window.location.href = `reportdetails.html?id=${report.id}`;
-                        
-                        // Get user's first name and last name initial
-                        const userName = report.userName ? report.userName.split(' ')[0] : 'Utente';
-                        const userInitial = report.userName ? report.userName.split(' ')[1]?.charAt(0) || '' : '';
-
-                        const createdtime = new Date(report.createdtime);
-                        const day = createdtime.toLocaleDateString("it-IT", { day: '2-digit' });
-                        const month = createdtime.toLocaleDateString("it-IT", { month: '2-digit' });
-                        const year = createdtime.toLocaleDateString("it-IT", { year: 'numeric' });
-                        const hour = createdtime.toLocaleTimeString("it-IT", { hour: '2-digit', minute: '2-digit' });
-
-                        const formattedTime = `${day}/${month}/${year} ${hour}`;
-                        
-                        reportElement.innerHTML = `
-                            <div class="flex justify-between text-sm font-semibold">
-                                <span>${userName} ${userInitial}.</span>
-                                <span class="text-gray-500">${formattedTime}</span>
-                            </div>
-                            <div class="text-sm text-gray-600 mt-1">
-                                <span class="font-semibold">${report.typology}</span> - ${report.district}
-                            </div>
-                            <p class="text-gray-700 text-sm mt-2">${report.notes}</p>
-                            <div class="flex justify-end space-x-2 mt-2">
-                                <button id="upvote-${report.id}" class="flex items-center space-x-1 text-green-600">
-                                    <span>👍</span>
-                                    <span id="upvote-count-${report.id}">${report.upvote}</span>
-                                </button>
-                                <button id="downvote-${report.id}" class="flex items-center space-x-1 text-red-600">
-                                    <span>👎</span>
-                                    <span id="downvote-count-${report.id}">${report.downvote}</span>
-                                </button>
-                            </div>
-                        `;
-                        
-                        reportsList.appendChild(reportElement);
-                        
-                        // Initialize vote buttons
-                        initializeVoteButtons(report.id);
-                    });
-                }
-            }
-        </script>
-    </body>
 </html>
