@@ -132,9 +132,8 @@ function checkAuth() {
 }
 
 function createReport() {
-  const typology = document.getElementById('typology').value;
-  const notes = document.getElementById('notes').value;
-  const district = document.getElementById('district').value;
+  const typology = document.getElementById('typology');
+  const notes = document.getElementById('notes');
   
   // check if marker exists
   if (typeof marker === 'undefined' || !marker) {
@@ -144,7 +143,6 @@ function createReport() {
   
   // get marker position in JSON format (lat/lng)
   const position = [marker.getLatLng().lat, marker.getLatLng().lng];
-  const locationString = JSON.stringify(position);
 
   // get current date and time in yyyy-mm-dd HH:ii format
   const now = new Date();
@@ -157,24 +155,28 @@ function createReport() {
     },
     credentials: 'include',
     body: JSON.stringify({
-      typology: typology,
-      notes: notes,
-      location: locationString,
-      district: district,
+      typology: typology.value,
+      notes: notes.value,
+      location: position,
       createdtime: createdtime
     })
   })
-  .then(function (res) {
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(data => {
+        throw new Error(data.error || 'Errore durante la creazione della segnalazione');
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
     alert("Grazie per la segnalazione!");
     notes.value = "";
+    window.location.reload();
   })
-  .then(function (res) {
-    if (res.error) {
-      throw new Error(res.error);
-    }
-  })
-  .catch((error) => {
-    console.err(error);
+  .catch(error => {
+    console.error('Error:', error);
+    alert(error.message);
   });
 }
 

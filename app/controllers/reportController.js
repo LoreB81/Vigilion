@@ -1,5 +1,6 @@
 const Report = require('../models/report.js');
 const User = require('../models/user.js');
+const districtChecker = require('../districtChecker.js');
 
 const getSingleReport = async (req, res) => {
   try {
@@ -53,24 +54,31 @@ const createReport = async (req, res) => {
     /** checking if the required parameters are given in the request body */
     const user = req.cookies.logged_user;
 
-    if (!user || !req.body.typology || !req.body.notes || !req.body.location || !req.body.district) {
-      return res.status(400).json({ error: "Missing required fields" });
+    if (!user || !req.body.typology || !req.body.notes || !req.body.location) {
+      return res.status(400).json({ error: "Mancano dei campi necessari" });
     }
 
-    const newReport = new Report({
-      user: user,
-      typology: req.body.typology,
-      notes: req.body.notes,
-      location: req.body.location,
-      district: req.body.district,
-      upvote: 0,
-      downvote: 0,
-      createdtime: req.body.createdtime
-    });
+    const district = await districtChecker(req.body.location);
+    if (district != "Error") {
+      const locationString = JSON.stringify(req.body.location);
 
-    const savedReport = await newReport.save();
+      const newReport = new Report({
+        user: user,
+        typology: req.body.typology,
+        notes: req.body.notes,
+        location: locationString,
+        district: district,
+        upvote: 0,
+        downvote: 0,
+        createdtime: req.body.createdtime
+      });
 
-    return res.status(201).json(savedReport);
+      const savedReport = await newReport.save();
+
+      return res.status(201).json(savedReport);
+    } else {
+      return res.status(422).json({ error: "Impossibile trovare la circoscrizione di appartenenza delle coordinate inserite", signalUser: true });
+    }
   } catch (err) {
     return res.status(500).json({ error: "Server error", details: err.message });
   }

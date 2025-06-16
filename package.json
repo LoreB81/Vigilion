@@ -4,7 +4,7 @@
   "description": "Progetto Vigilion - Ingegneria del Software",
   "main": "server.js",
   "scripts": {
-    "test": "jest",
+    "test": "node ./scripts/test.js",
     "start": "node ./app/server.js",
     "start_local": "npm run dev",
     "dev": "node -r dotenv/config ./app/server.js"
@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/LoreB81/ProgettoIngSoft#readme",
   "dependencies": {
+    "@turf/turf": "^7.2.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -31,6 +32,7 @@
     "mongoose": "^8.8.2",
     "mongoose-sequence": "^6.0.1",
     "package": "^1.0.1",
+    "proj4": "^2.17.0",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^11.1.0"
   }
