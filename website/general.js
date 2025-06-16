@@ -54,6 +54,10 @@ function registerUser() {
   });
 }
 
+function loginWithGoogle() {
+  alert("Funzionalità non ancora implementata");
+}
+
 function login() {
   const email = document.getElementById('emfield').value;
   const password = document.getElementById('pswfield').value;
