@@ -71,6 +71,10 @@ function login() {
     body: JSON.stringify({ email: email, password: password })
   })
   .then(response => {
+    if (!response.ok && response.status == 403) {
+      alert("Il tuo utente è stato bloccato dagli amministratori");
+    }
+    
     if (!response.ok) {
       // invalid credentials
       return response.json().then(data => {
@@ -100,7 +104,7 @@ function logout() {
   .then(response => response.json())
   .then(data => {
     if (data.success) {
-      window.location.href = 'login.html';
+      window.location.href = 'index.html';
     }
   })
   .catch(error => {
@@ -110,7 +114,7 @@ function logout() {
 
 function checkAuth() {
   // store the current URL if we're not already on the login page
-  if (!window.location.pathname.includes('login.html')) {
+  if (!window.location.pathname.includes('index.html')) {
     sessionStorage.setItem('redirectAfterLogin', window.location.href);
   }
 
@@ -144,6 +148,12 @@ function createReport() {
     alert('Seleziona una posizione sulla mappa');
     return;
   }
+
+  // check if all values needed are given
+  if (typology.value == "" || notes.value == "" || typeof marker === 'undefined' || !marker) {
+    alert("Mancano dei campi necessari");
+    return;
+  }
   
   // get marker position in JSON format (lat/lng)
   const position = [marker.getLatLng().lat, marker.getLatLng().lng];
@@ -166,6 +176,10 @@ function createReport() {
     })
   })
   .then(response => {
+    if (!response.ok && response.status == 422) {
+      alert("Impossibile trovare la circoscrizione di appartenenza delle coordinate inserite");
+    }
+
     if (!response.ok) {
       return response.json().then(data => {
         throw new Error(data.error || 'Errore durante la creazione della segnalazione');
@@ -180,7 +194,6 @@ function createReport() {
   })
   .catch(error => {
     console.error('Error:', error);
-    alert(error.message);
   });
 }
 
@@ -266,6 +279,10 @@ async function handleVote(reportId, voteType) {
       body: JSON.stringify({ voteType })
     });
 
+    if (!response.ok && response.status == 401) {
+      alert("Per poter votare è necessario autenticarsi effettuando l'accesso");
+    }
+    
     if (!response.ok) {
       throw new Error('Failed to vote');
     }

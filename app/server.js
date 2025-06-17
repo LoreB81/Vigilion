@@ -5,11 +5,10 @@ const cookieParser = require('cookie-parser');
 const app = express();
 
 /** routes import */
-const user = require('./routes/users.js');
+const user = require('./routes/userRoutes.js');
 const report = require('./routes/reportRoutes.js');
 
 const authentication = require('./authentication.js');
-const tokenChecker = require('./tokenChecker.js');
 
 /** express.js parsing middleware */
 const mongoose = require('mongoose');
@@ -54,7 +53,6 @@ app.locals.db = mongoose.connect(
 
 /** authentication routing */
 app.use('/api/authentication', authentication);
-app.use('/api/reports', tokenChecker);
 
 /** resource routing */
 app.use('/api/reports', report);

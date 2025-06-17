@@ -16,11 +16,6 @@
   <script src="general.js"></script>
   <script src="menufunctions.js"></script>
   <link rel="stylesheet" href="style.css">
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      checkAuth();
-    });
-  </script>
 
   <title>Vigilion</title>
 </head>
@@ -71,7 +66,7 @@
             return;
           }
 
-          window.map = L.map('map', { zoomControl: true }).setView([46.0704, 11.1215], 14);
+          window.map = L.map('map', { zoomControl: true }).setView([46.0704, 11.1215], 12);
 
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

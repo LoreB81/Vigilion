@@ -19,7 +19,7 @@ async function verify(token) {
   return payload;
 }
 
-/** google authentication endpoint */
+/** authentication endpoint (google - yet to be implemented - and normal )*/
 router.post('', async function(req, res) {
 	var user = {};
 
@@ -59,6 +59,12 @@ router.post('', async function(req, res) {
 			res.json({ success: false, message: 'Authentication failed. Wrong password.' });
 			return;
 		}
+	}
+
+	/** check if user is blocked */
+	if (user.blocked) {
+		res.status(403).json({ success: false, message: 'The account is blocked by the admins' });
+		return;
 	}
 	
 	var payload = {

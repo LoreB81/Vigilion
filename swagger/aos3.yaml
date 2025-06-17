@@ -9,6 +9,122 @@ servers:
   - url: http://localhost:8000/api
     description: Localhost server
 
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - firstname
+        - lastname
+        - email
+        - password
+        - circoscrizione
+      properties:
+        id:
+          type: string
+        firstname:
+          type: string
+        lastname:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+    Report:
+      type: object
+      required:
+        - user
+        - typology
+        - notes
+        - location
+        - upvote
+        - downvote
+        - createdtime
+      properties:
+        id:
+          type: integer
+          description: ID autogenerato della segnalazione
+        user:
+          type: string
+          description: ID dell'utente
+        typology:
+          type: string
+          enum: [Furto, Aggressione, Molestia, Soggetto armato, Soggetto alterato, Altro]
+          description: Tipologia della segnalazione
+        notes:
+          type: string
+          description: Descrizione della segnalazione
+        location:
+          type: string
+          description: Posizione della segnalazione (latitudine/longitudine)
+        upvote:
+          type: integer
+          description: Numero di upvote ricevuti
+        downvote:
+          type: integer
+          description: Numero di downvote ricevuti
+        createdtime:
+          type: string
+          description: Data e ora di creazione della segnalazione (formato yyyy-mm-dd HH:ii)
+    Vote:
+      type: object
+      required:
+        - user
+        - report
+        - voteType
+      properties:
+        user:
+          type: string
+          description: ID dell'utente
+        report:
+          type: integer
+          description: ID della segnalazione
+        voteType:
+          type: string
+          enum: [upvote, downvote]
+          description: Tipo di voto
+        createdAt:
+          type: string
+          format: date-time
+          description: Data e ora del voto
+  responses:
+    NotFound:
+      description: Risorsa non trovata
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Risorsa non trovata
+    BadRequest:
+      description: Richiesta non valida
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Parametri non validi
+    Unauthorized:
+      description: L'utente non è autorizzato a compiere questa azione
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: Utente non autorizzato
+
 paths:
   /authentication:
     post:
@@ -29,7 +145,7 @@ paths:
                     type: string
                     description: Token JWT per l'autenticazione
         '401':
-          description: Credenziali non valide
+          $ref: '#/components/responses/Unauthorized'
       requestBody:
         description: Credenziali per l'autenticazione (email e password)
         required: true
@@ -252,6 +368,8 @@ paths:
     description: Creazione in POST di una nuova segnalazione e restituzione in GET di tutte le segnalazioni
     post:
       summary: Creazione nuova segnalazione
+      security:
+        - bearerAuth: []
       requestBody:
         description: Segnalazione da creare
         required: true
@@ -264,6 +382,8 @@ paths:
           description: Segnalazione creata
         "400":
           $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
     get:
       summary: Lista delle segnalazioni
       responses:
@@ -369,6 +489,8 @@ paths:
   /reports/{id}/vote:
     post:
       summary: Vota una segnalazione
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -408,13 +530,15 @@ paths:
                     enum: [upvote, downvote, null]
                     description: Voto dell'utente corrente
         '401':
-          description: Utente non autenticato
+          $ref: '#/components/responses/Unauthorized'
         '404':
           description: Segnalazione non trovata
 
   /reports/{id}/user-vote:
     get:
       summary: Ottieni il voto dell'utente per una segnalazione
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -435,117 +559,4 @@ paths:
                     enum: [upvote, downvote, null]
                     description: Tipo di voto dell'utente
         '401':
-          description: Utente non autenticato
-
-components:
-  schemas:
-    User:
-      type: object
-      required:
-        - id
-        - firstname
-        - lastname
-        - email
-        - password
-        - circoscrizione
-      properties:
-        id:
-          type: string
-        firstname:
-          type: string
-        lastname:
-          type: string
-        email:
-          type: string
-        password:
-          type: string
-    Report:
-      type: object
-      required:
-        - user
-        - typology
-        - notes
-        - location
-        - upvote
-        - downvote
-        - createdtime
-      properties:
-        id:
-          type: integer
-          description: ID autogenerato della segnalazione
-        user:
-          type: string
-          description: ID dell'utente
-        typology:
-          type: string
-          enum: [Furto, Aggressione, Molestia, Soggetto armato, Soggetto alterato, Altro]
-          description: Tipologia della segnalazione
-        notes:
-          type: string
-          description: Descrizione della segnalazione
-        location:
-          type: string
-          description: Posizione della segnalazione (latitudine/longitudine)
-        upvote:
-          type: integer
-          description: Numero di upvote ricevuti
-        downvote:
-          type: integer
-          description: Numero di downvote ricevuti
-        createdtime:
-          type: string
-          description: Data e ora di creazione della segnalazione (formato yyyy-mm-dd HH:ii)
-    UserReport:
-      type: object
-      required:
-        - user
-        - report
-      properties:
-        user:
-          type: string
-          description: ID dell'utente
-        report:
-          type: integer
-          description: ID del report
-    Vote:
-      type: object
-      required:
-        - user
-        - report
-        - voteType
-      properties:
-        user:
-          type: string
-          description: ID dell'utente
-        report:
-          type: integer
-          description: ID della segnalazione
-        voteType:
-          type: string
-          enum: [upvote, downvote]
-          description: Tipo di voto
-        createdAt:
-          type: string
-          format: date-time
-          description: Data e ora del voto
-  responses:
-    NotFound:
-      description: Risorsa non trovata
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-                example: Risorsa non trovata
-    BadRequest:
-      description: Richiesta non valida
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-                example: Parametri non validi
+          $ref: '#/components/responses/Unauthorized'

@@ -55,7 +55,7 @@ const createReport = async (req, res) => {
     const user = req.cookies.logged_user;
 
     if (!user || !req.body.typology || !req.body.notes || !req.body.location) {
-      return res.status(400).json({ error: "Mancano dei campi necessari" });
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
     const district = await districtChecker(req.body.location);
@@ -77,7 +77,7 @@ const createReport = async (req, res) => {
 
       return res.status(201).json(savedReport);
     } else {
-      return res.status(422).json({ error: "Impossibile trovare la circoscrizione di appartenenza delle coordinate inserite", signalUser: true });
+      return res.status(422).json({ error: "The location given does not appear in any district" });
     }
   } catch (err) {
     return res.status(500).json({ error: "Server error", details: err.message });

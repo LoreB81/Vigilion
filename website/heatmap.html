@@ -132,20 +132,23 @@
     function getColor(val, min, max) {
       const range = max - min;
       const third = range / 3;
-      console.log(val, third);
       
-      if (val <= min + third) return '#4ade80';  // green
-      if (val <= min + (2 * third)) return '#fde047';  // yellow
+      if (val < min - third) return '#4ade80';  // green
+      if (val >= min - third && val <= min + third) return '#fde047';  // yellow
       return '#f87171';  // red
     }
 
     function updateMap(districts, reports) {
       const counts = {};
-      reports.forEach(r => {
-        if (r.district) {
-          counts[r.district] = (counts[r.district] || 0) + 1;
-        }
-      });
+      
+      // count reports for each district
+      if (!reports.error) {
+        reports.forEach(r => {
+          if (r.district) {
+            counts[r.district] = (counts[r.district] || 0) + 1;
+          }
+        });
+      }
 
       const values = Object.values(counts);
       const min = Math.min(...values);
