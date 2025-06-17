@@ -37,11 +37,16 @@ app.use((req, res, next) => {
   next();
 });
 
+/** expose circoscrizioni.geojson file to frontend */
+app.get('/api/districts', (req, res) => {
+  const filePath = Path.join(__dirname, '', 'circoscrizioni.geojson');
+  res.sendFile(filePath);
+});
+
 /** database connection */
 app.locals.db = mongoose.connect(
   process.env.DB_URL
 ).then(() => {
-  console.log("MongoDB connection -- Ready state is: ", mongoose.connections.readyState);
   app.listen(process.env.PORT, () => {
     console.log('The app is listening in port', process.env.PORT);
   });

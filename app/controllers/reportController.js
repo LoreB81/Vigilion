@@ -95,13 +95,13 @@ const getFilteredReports = async (req, res) => {
     if (startDate || endDate) {
       query.createdtime = {};
       if (startDate) {
-        // Convert startDate to string format "YYYY-MM-DD HH:mm" for comparison
+        /** convert startDate to string format "YYYY-MM-DD HH:mm" for comparison */
         const startDateStr = new Date(startDate).toISOString().slice(0, 10) + ' ' + 
                            new Date(startDate).toTimeString().slice(0, 5);
         query.createdtime.$gte = startDateStr;
       }
       if (endDate) {
-        // Set end date to end of day (23:59) to make it inclusive
+        /** set end date to end of day (23:59) to make it inclusive */
         const endDateTime = new Date(endDate);
         endDateTime.setHours(23, 59, 59);
         const endDateStr = endDateTime.toISOString().slice(0, 10) + ' ' + 

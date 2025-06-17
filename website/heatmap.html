@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="style/output.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="general.js"></script>
+  <script src="menufunctions.js"></script>
+  <script src="loadselectoptions.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <title>Heatmap</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.8.0/proj4.js"></script>
+</head>
+<body class="bg-gray-100">
+  <div class="bg-white">
+    <!-- Header -->
+    <div class="bg-green-500 flex justify-between items-center p-4 rounded-b-3xl">
+      <div class="text-white font-bold text-lg flex items-center">
+        <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+        <a href="index.html"><span>Vigilion</span></a>
+      </div>
+      <div>
+        <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
+      </div>
+    </div>
+    <div id="menu-container" class="relative"></div>
+    <!-- Map -->
+    <div class="p-4 space-y-4">
+      <div class="h-[75vh] flex justify-center items-center bg-gray-100">
+        <div id="map" class="w-full h-[75vh] bg-gray-300 rounded-lg shadow-md" style="height: 75vh;"></div>
+      </div>
+    </div>
+    <!-- Filters -->
+    <div class="px-4 space-y-2">
+      <div class="flex space-x-2">
+        <input type="date" id="startDate" class="w-1/2 p-2 border rounded-full shadow-sm">
+        <input type="date" id="endDate" class="w-1/2 p-2 border rounded-full shadow-sm">
+      </div>
+      <select id="typology" class="rounded-full border-2 w-full">
+        <option value="">Tutte le tipologie</option>
+      </select>
+    </div>
+  <script>
+    let map, circLayer;
+    let districtsGeojson = null;
+
+    function initializeMapWhenReady() {
+      const mapContainer = document.getElementById("map");
+      const waitForSize = () => {
+        if (mapContainer.offsetWidth && mapContainer.offsetHeight) {
+          initializeMap();
+        } else {
+          setTimeout(waitForSize, 100);
+        }
+      };
+      waitForSize();
+    }
+
+    function initializeMap() {
+      var mapContainer = document.getElementById("map");
+
+      if (!mapContainer.offsetWidth || !mapContainer.offsetHeight) {
+        console.error("div #map has invalid dimension at creation:", mapContainer.offsetWidth, mapContainer.offsetHeight);
+        return;
+      }
+
+      map = L.map('map', { zoomControl: true }).setView([46.0704, 11.1215], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      setTimeout(() => {
+        map.invalidateSize();
+        updateHeatmap();
+      }, 500);
+    }
+
+    async function loadDistricts() {
+      if (districtsGeojson) {
+        return districtsGeojson;
+      }
+
+      const response = await fetch('api/districts');
+      const geojson = await response.json();
+
+      proj4.defs("EPSG:25832", "+proj=utm +zone=32 +datum=ETRS89 +units=m +no_defs");
+
+      function convertCoords(coords) {
+        return coords.map(ring =>
+          ring.map(([x, y]) => {
+            const [lon, lat] = proj4('EPSG:25832', 'WGS84', [x, y]);
+            return [lon, lat];
+          })
+        );
+      }
+
+      function convertMultiCoords(coords) {
+        return coords.map(poly => convertCoords(poly));
+      }
+
+      geojson.features.forEach(f => {
+        if (f.geometry.type === "Polygon") {
+          f.geometry.coordinates = convertCoords(f.geometry.coordinates);
+        } else if (f.geometry.type === "MultiPolygon") {
+          f.geometry.coordinates = convertMultiCoords(f.geometry.coordinates);
+        }
+      });
+
+      districtsGeojson = geojson;
+      return geojson;
+    }
+
+    async function loadReports(filters) {
+      const response = await fetch('/api/reports/filtered', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(filters)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch reports');
+      }
+
+      return await response.json();
+    }
+
+    function getColor(val, min, max) {
+      const range = max - min;
+      const third = range / 3;
+      console.log(val, third);
+      
+      if (val <= min + third) return '#4ade80';  // green
+      if (val <= min + (2 * third)) return '#fde047';  // yellow
+      return '#f87171';  // red
+    }
+
+    function updateMap(districts, reports) {
+      const counts = {};
+      reports.forEach(r => {
+        if (r.district) {
+          counts[r.district] = (counts[r.district] || 0) + 1;
+        }
+      });
+
+      const values = Object.values(counts);
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+
+      if (circLayer) {
+        map.removeLayer(circLayer);
+      }
+
+      circLayer = L.geoJSON(districts, {
+        style: function(feature) {
+          const nome = feature.properties.nome;
+          const val = counts[nome] || 0;
+
+          return {
+            color: '#222',
+            weight: 2,
+            fillColor: getColor(val, min, max),
+            fillOpacity: 0.4
+          };
+        },
+        onEachFeature: function(feature, layer) {
+          const nome = feature.properties.nome;
+          const val = counts[nome] || 0;
+          layer.bindPopup(`<b>${nome}</b><br>Segnalazioni: ${val}`);
+        }
+      }).addTo(map);
+
+      if (circLayer.getBounds().isValid()) {
+        map.fitBounds(circLayer.getBounds());
+      }
+    }
+
+    async function updateHeatmap() {
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+      const typology = document.getElementById('typology').value;
+
+      const filters = { startDate, endDate, typology };
+
+      const [districts, reports] = await Promise.all([
+        loadDistricts(),
+        loadReports(filters)
+      ]);
+
+      updateMap(districts, reports);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeMapWhenReady();
+      document.getElementById('startDate').addEventListener('change', updateHeatmap);
+      document.getElementById('endDate').addEventListener('change', updateHeatmap);
+      document.getElementById('typology').addEventListener('change', updateHeatmap);
+    });
+  </script>
+</body>
+</html>

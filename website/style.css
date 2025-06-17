@@ -25,6 +25,13 @@ html, body, #map {
   padding: 0;
 }
 
+#map {
+  height: 350px;
+  border-radius: 20px;
+  border: 2px solid #222;
+  margin: 0 auto;
+}
+
 .gsi-material-button {
   -moz-user-select: none;
   -webkit-user-select: none;

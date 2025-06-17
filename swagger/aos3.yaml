@@ -111,45 +111,18 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
 
-  /userreports/{id}:
+  /districts:
     get:
-      summary: Ritorna tutte le segnalazioni di un utente
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-          description: ID dell'utente
+      summary: Espone il file circoscrizioni.geojson alle pagine frontend
       responses:
         "200":
-          description: Lista delle segnalazioni associate all'utente
+          description: File contenente i poligoni che rappresentano le circoscrizioni del comune di Trento
           content:
-            application/json:
+            application/geo+json:
               schema:
                 type: array
-                items:
-                  $ref: "#/components/schemas/Report"
         "404":
           $ref: "#/components/responses/NotFound"
-    post:
-      summary: Crea una relazione tra utente e report
-      requestBody:
-        description: Relazione utente-report da creare
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UserReport"
-      responses:
-        "201":
-          description: Relazione creata
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserReport"
-        "400":
-          $ref: "#/components/responses/BadRequest"
 
   /users:
     summary: Rappresentazione della lista di utenti

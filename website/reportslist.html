@@ -75,7 +75,7 @@
       const typology = document.getElementById('typology').value;
 
       try {
-        const response = await fetch('http://localhost:8000/api/reports/filtered', {
+        const response = await fetch('/api/reports/filtered', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

@@ -63,7 +63,7 @@
 
     async function fetchReportDetails(reportId) {
       try {
-        const response = await fetch(`http://localhost:8000/api/reports/${reportId}`, {
+        const response = await fetch(`/api/reports/${reportId}`, {
           credentials: 'include'
         });
 
