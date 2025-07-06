@@ -19,5 +19,6 @@ router.get('/', userController.getUsersData);
 router.post('/', userController.registerUser);
 router.post('/change-password', userController.changePassword);
 router.post('/change-district', userController.changeDistrict);
+router.post('/change-email', userController.changeEmail);
 
 module.exports = router;

@@ -47,7 +47,7 @@ router.post('', async function(req, res) {
 		}).exec();
 
 		if (!user) {
-			res.json({ success: false, message: 'Authentication failed. User not found.' });
+			res.status(404).json({ success: false, message: 'Authentication failed. User not found.' });
 			return;
 		}
 	

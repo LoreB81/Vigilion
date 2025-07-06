@@ -74,6 +74,10 @@ function login() {
     if (!response.ok && response.status == 403) {
       alert("Il tuo utente è stato bloccato dagli amministratori");
     }
+
+    if (!response.ok && response.status == 404) {
+      alert("Credenziali inserite non valide");
+    }
     
     if (!response.ok) {
       // invalid credentials
@@ -114,7 +118,7 @@ function logout() {
 
 function checkAuth() {
   // store the current URL if we're not already on the login page
-  if (!window.location.pathname.includes('index.html')) {
+  if (!window.location.pathname.includes('login.html')) {
     sessionStorage.setItem('redirectAfterLogin', window.location.href);
   }
 
@@ -490,6 +494,52 @@ async function changeDistrict() {
     }
   } catch (error) {
     console.error('Error on district change:', error);
+    alert(error.message);
+  }
+}
+
+async function changeEmail(oldEmail, newEmail) {
+  // validate inputs
+  if (!oldEmail || !newEmail) {
+    alert('Per favore, compila tutti i campi');
+    return;
+  }
+
+  // basic email validation
+  const emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  if (!emailRegex.test(newEmail)) {
+    alert('Per favore, inserisci un indirizzo email valido');
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/users/change-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        oldEmail: oldEmail,
+        newEmail: newEmail
+      })
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || 'Error on email change');
+    }
+
+    const data = await response.json();
+    if (data.success) {
+      // redirect to index page
+      alert('Email modificata con successo!');
+      window.location.href = 'index.html';
+    } else {
+      throw new Error(data.error || 'Error on email change');
+    }
+  } catch (error) {
+    console.error('Error on email change:', error);
     alert(error.message);
   }
 }

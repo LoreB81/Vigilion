@@ -163,6 +163,7 @@ paths:
                 password:
                   type: string
                   description: Password dell'utente
+
   /authentication/logout:
     post:
       summary: Logout dell'utente
@@ -180,7 +181,8 @@ paths:
                     description: True se il logout è riuscito
                   message:
                     type: string
-                    description: Messaggio di conferma del logout
+                    description: Messaggio di conferma del Logout
+
   /authentication/check:
     get:
       summary: Verifica autenticazione
@@ -205,6 +207,7 @@ paths:
                       id:
                         type: string
                         description: ID dell'utente autenticato
+
   /users/{id}:
     summary: Rappresentazione di un utente
     description: La risorsa rappresenta un utente univocamente. Ogni utente è identificato da un id.
@@ -363,6 +366,55 @@ paths:
         "500":
           description: Errore del server
 
+  /users/change-email:
+    post:
+      summary: Modifica l'email dell'utente
+      description: Modifica l'email dell'utente autenticato, verificando prima la vecchia email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - oldEmail
+                - newEmail
+              properties:
+                oldEmail:
+                  type: string
+                  description: Vecchia email dell'utente
+                newEmail:
+                  type: string
+                  description: Nuova email dell'utente
+      responses:
+        "200":
+          description: Email modificata con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: True se la modifica è riuscita
+                  message:
+                    type: string
+                    description: Messaggio di conferma
+        "400":
+          description: Email non valida o non corrispondente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Messaggio di errore
+        "401":
+          description: Utente non autenticato
+        "500":
+          description: Errore del server
+
   /reports:
     summary: Gestione delle segnalazioni
     description: Creazione in POST di una nuova segnalazione e restituzione in GET di tutte le segnalazioni
@@ -384,6 +436,8 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "422":
+          description: La segnalazione non appartiene ad alcuna circoscrizione
     get:
       summary: Lista delle segnalazioni
       responses:

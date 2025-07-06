@@ -159,6 +159,47 @@ const changeDistrict = async (req, res) => {
   }
 };
 
+const changeEmail = async (req, res) => {
+  try {
+    /** get the user's ID from cookies */
+    const userId = req.cookies.logged_user;
+    
+    /** find the user using the ID retrieved before */
+    const user = await User.findOne({ id: userId });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    /** verify old email */
+    if (user.email !== req.body.oldEmail) {
+      return res.status(400).json({ error: "Old email is incorrect" });
+    }
+
+    /** validate new email format */
+    if (!checkIfEmailInString(req.body.newEmail)) {
+      return res.status(400).json({ error: "The new email format is not valid" });
+    }
+
+    /** check if new email is already in use by another user */
+    const existingUser = await User.findOne({ email: req.body.newEmail });
+    if (existingUser && existingUser.id !== userId) {
+      return res.status(400).json({ error: "Email already in use" });
+    }
+
+    /** update the email */
+    user.email = req.body.newEmail;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Email modified successfully"
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: "Error while changing email", details: err.message });
+  }
+};
+
 /**
  * Hash a password using SHA-256 with the user's UUID as salt
  * @param {string} password - The plain text password
@@ -194,5 +235,6 @@ module.exports = {
   getUsersData,
   registerUser,
   changePassword,
-  changeDistrict
+  changeDistrict,
+  changeEmail
 };
