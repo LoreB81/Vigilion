@@ -17,7 +17,10 @@ const getUserData = async (req, res) => {
       firstname: user.firstname,
       lastname: user.lastname,
       email: user.email,
-      district: user.district
+      district: user.district,
+      admin: user.admin,
+      warned: user.warned,
+      blocked: user.blocked
     };
 
     return res.status(200).json(userData);
@@ -200,6 +203,60 @@ const changeEmail = async (req, res) => {
   }
 };
 
+/** PATCH: /api/users/:id/warn */
+const warnUser = async (req, res) => {
+  if (!(await isAdmin(req))) {
+    return res.status(403).json({ error: 'Only admins can warn users' });
+  }
+
+  const user = await User.findOne({ id: req.params.id });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  user.warned = true;
+  await user.save();
+  res.json({ success: true, message: 'User warned' });
+};
+
+/** PATCH: /api/users/:id/ban */
+const banUser = async (req, res) => {
+  if (!(await isAdmin(req))) {
+    return res.status(403).json({ error: 'Only admins can ban users' });
+  }
+
+  const user = await User.findOne({ id: req.params.id });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  user.blocked = true;
+  await user.save();
+  res.json({ success: true, message: 'User banned' });
+};
+
+/** PATCH: /api/users/:id/reactivate */
+const reactivateUser = async (req, res) => {
+  if (!(await isAdmin(req))) {
+    return res.status(403).json({ error: 'Only admins can reactivate users' });
+  }
+
+  const user = await User.findOne({ id: req.params.id });
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  
+  user.blocked = false;
+  user.warned = false;
+  await user.save();
+  res.json({ success: true, message: 'User reactivated' });
+};
+
+/**
+ * Checks if the user is an admin
+ * @param {Request} req - The request object
+ * @returns {boolean} - True if the user is an admin
+ */
+async function isAdmin(req) {
+  const userId = req.cookies.logged_user;
+  const user = await User.findOne({ id: userId });
+  return user && user.admin;
+}
+
 /**
  * Hash a password using SHA-256 with the user's UUID as salt
  * @param {string} password - The plain text password
@@ -236,5 +293,8 @@ module.exports = {
   registerUser,
   changePassword,
   changeDistrict,
-  changeEmail
+  changeEmail,
+  warnUser,
+  banUser,
+  reactivateUser
 };

@@ -229,6 +229,132 @@ paths:
                 $ref: "#/components/schemas/User"
         "404":
           $ref: "#/components/responses/NotFound"
+  
+  /users/{id}/warn:
+    patch:
+      summary: Ammonisci un utente
+      description: Permette ad un amministratore di ammonire un utente (imposta warned = true)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente da ammonire
+      responses:
+        "200":
+          description: Utente ammonito con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "403":
+          description: Solo amministratori
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "404":
+          description: Utente non trovato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /users/{id}/ban:
+    patch:
+      summary: Bandisci un utente
+      description: Permette ad un amministratore di bannare un utente (imposta blocked = true)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente da bannare
+      responses:
+        "200":
+          description: Utente bannato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "403":
+          description: Solo amministratori
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "404":
+          description: Utente non trovato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /users/{id}/reactivate:
+    patch:
+      summary: Riattiva un utente
+      description: Permette ad un amministratore di riattivare un utente (imposta blocked = false, warned = false)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente da riattivare
+      responses:
+        "200":
+          description: Utente riattivato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "403":
+          description: Solo amministratori
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "404":
+          description: Utente non trovato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
 
   /districts:
     get:

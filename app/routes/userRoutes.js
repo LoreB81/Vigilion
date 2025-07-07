@@ -20,5 +20,8 @@ router.post('/', userController.registerUser);
 router.post('/change-password', userController.changePassword);
 router.post('/change-district', userController.changeDistrict);
 router.post('/change-email', userController.changeEmail);
+router.patch('/:id/warn', userController.warnUser);
+router.patch('/:id/ban', userController.banUser);
+router.patch('/:id/reactivate', userController.reactivateUser);
 
 module.exports = router;

@@ -32,13 +32,13 @@
     <!-- Report details -->
     <div class="p-4 space-y-4">
       <button onclick="window.history.back()" class="text-black hover:text-gray-200 transition-colors">
-        <span class="mr-1">←</span> Torna alle segnalazioni
+        <span class="mr-1">←</span> Torna indietro
       </button>
       <div id="report-details" class="space-y-4">
       </div>
 
-      <div class="h-[50vh] flex justify-center items-center bg-gray-100">
-        <div id="map" class="w-full h-[50vh] bg-gray-300 rounded-lg shadow-md" style="height: 75vh;"></div>
+      <div class="flex justify-center items-center bg-gray-100">
+        <div id="map" class="w-full h-[50vh] md:h-[60vh] lg:h-[70vh] xl:max-w-[900px] bg-gray-300 rounded-lg shadow-md"></div>
       </div>
     </div>
   </div>
@@ -118,37 +118,31 @@
     function initializeMap(report) {
       try {
         const location = JSON.parse(report.location);
+        const mapContainer = document.getElementById("map");
+        let map; // dichiarata qui, accessibile anche fuori da waitForSize
 
-        function initializeMapWhenReady() {
-          const mapContainer = document.getElementById("map");
+        function waitForSize() {
+          if (mapContainer.offsetWidth && mapContainer.offsetHeight) {
+            map = L.map('map', { zoomControl: true }).setView([location[0], location[1]], 15);
 
-          const waitForSize = () => {
-            if (mapContainer.offsetWidth && mapContainer.offsetHeight) {
-              const map = L.map('map', { zoomControl: true }).setView([location[0], location[1]], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
 
-              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              }).addTo(map);
+            L.marker([location[0], location[1]]).addTo(map);
 
-              L.marker([location[0], location[1]]).addTo(map);
+            // adesso map è disponibile anche qui
+            window.addEventListener('resize', function () {
+              map.invalidateSize();
+            });
 
-            } else {
-              setTimeout(waitForSize, 100);
-            }
-          };
-
-          waitForSize();
+          } else {
+            setTimeout(waitForSize, 100);
+          }
         }
 
-        initializeMapWhenReady();
+        waitForSize();
 
-        // handle window resize
-        window.addEventListener("resize", function () {
-          const map = document.querySelector('#map');
-          if (map && map._leaflet_id) {
-            map.invalidateSize();
-          }
-        });
       } catch (error) {
         console.error('Error initializing map:', error);
         document.getElementById('map').innerHTML = '<p class="text-red-500">Errore nel caricamento della mappa</p>';

@@ -45,6 +45,38 @@
       <button
         class="w-80 border border-gray-400 text-gray-700 font-semibold py-3 rounded-full shadow-sm hover:bg-gray-200"
         onclick="window.location.href='changedistrict.html'">Modifica circoscrizione di residenza</button>
+      <button
+        class="w-80 border border-gray-400 text-gray-700 font-semibold py-3 rounded-full shadow-sm hover:bg-gray-200"
+        onclick="alert('Funzione non ancora disponibile')">Zone di interesse</button>
+      <button
+        class="w-80 border border-gray-400 text-gray-700 font-semibold py-3 rounded-full shadow-sm hover:bg-gray-200"
+        onclick="alert('Funzione non ancora disponibile')">Invia feedback</button>
+
+      <!-- Control panel -->
+      <button
+        id="adminPanelLink"
+        style="display:none;"
+        class="w-80 border border-gray-400 text-gray-700 font-semibold py-3 rounded-full shadow-sm hover:bg-gray-200"
+        onclick="window.location.href='controlpanel.html'">Pannello di controllo</button>
+      <script>
+      fetch('/api/authentication/check', { credentials: 'include' })
+        .then(res => res.json())
+        .then(data => {
+          if (data.authenticated && data.user && data.user.id) {
+            fetch(`/api/users/${data.user.id}`, { credentials: 'include' })
+              .then(res => res.json())
+              .then(user => {
+                if (user.admin) {
+                  document.getElementById('adminPanelLink').style.display = 'block';
+                }
+              });
+          }
+        });
+      </script>
+
+      <button
+        class="w-80 border border-gray-400 text-gray-700 font-semibold py-3 rounded-full shadow-sm hover:bg-gray-200"
+        onclick="alert('Funzione non ancora disponibile')">Elimina account</button>
     </div>
 
     <!-- Logout -->

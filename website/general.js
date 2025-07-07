@@ -505,13 +505,6 @@ async function changeEmail(oldEmail, newEmail) {
     return;
   }
 
-  // basic email validation
-  const emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  if (!emailRegex.test(newEmail)) {
-    alert('Per favore, inserisci un indirizzo email valido');
-    return;
-  }
-
   try {
     const response = await fetch('/api/users/change-email', {
       method: 'POST',
@@ -546,4 +539,52 @@ async function changeEmail(oldEmail, newEmail) {
 
 function callNumber() {
   alert('Funzionalità non ancora implementata');
+}
+
+async function checkAdminAuth() {
+  try {
+    const response = await fetch('/api/authentication/check', {
+      credentials: 'include'
+    });
+    
+    if (!response.ok) {
+      throw new Error('Authentication check failed');
+    }
+    
+    const data = await response.json();
+
+    if (!data.authenticated || !data.user || !data.user.id) {
+      // not authenticated, redirect to login page
+      window.location.replace('login.html');
+      return false;
+    }
+
+    // checks if the user is admin
+    const userResponse = await fetch(`/api/users/${data.user.id}`, {
+      credentials: 'include'
+    });
+    
+    if (!userResponse.ok) {
+      throw new Error('Failed to fetch user data');
+    }
+    
+    const userData = await userResponse.json();
+    
+    if (!userData.admin) {
+      // if the user isn't an admin, redirect to the precedent page
+      const referrer = document.referrer;
+      if (referrer && !referrer.includes('controlpanel.html') && !referrer.includes('useractions.html')) {
+        window.location.replace(referrer);
+      } else {
+        window.location.replace('index.html');
+      }
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error on admin authentication check:', error);
+    window.location.replace('index.html');
+    return false;
+  }
 }

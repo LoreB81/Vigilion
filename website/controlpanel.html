@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<!--./tailwindcss -i input.css -o output.css --minify-->
+<html lang="it">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="style/output.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="general.js"></script>
+  <script src="menufunctions.js"></script>
+  <script src="loadselectoptions.js"></script>
+  <script src="controlpanel.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script>
+    document.addEventListener('DOMContentLoaded', async function () {
+      // checks if the user is admin
+      const isAdmin = await checkAdminAuth();
+      if (!isAdmin) {
+        return;
+      }
+    });
+  </script>
+
+  <title>Pannello di controllo</title>
+</head>
+
+<body class="bg-gray-100">
+  <div class="bg-white">
+    <!-- Header -->
+    <div class="bg-green-500 flex justify-between items-center p-4">
+      <div class="text-white font-bold text-lg flex items-center">
+        <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+        <span>Pannello di controllo</span>
+      </div>
+      <div>
+        <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
+      </div>
+    </div>
+    <div id="menu-container"></div>
+  </div>
+
+  <!-- Search bar -->
+  <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+    <input
+      type="text"
+      id="searchUser"
+      placeholder="Cerca utente..."
+      class="w-full px-4 py-2 rounded-full border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200">
+  </div>
+
+  <!-- Users list -->
+  <div id="userList" class="w-full flex flex-col gap-2"></div>
+
+  <script>
+    document.getElementById('searchUser').addEventListener('input', (e) => {
+      const val = e.target.value.toLowerCase();
+      const filtered = users.filter(u =>
+        u.firstname.toLowerCase().includes(val) ||
+        u.lastname.toLowerCase().includes(val)
+      );
+      displayUserList(filtered);
+    });
+  </script>
+</body>
+
+</html>
