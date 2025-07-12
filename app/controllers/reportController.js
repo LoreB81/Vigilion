@@ -145,10 +145,34 @@ const getFilteredReports = async (req, res) => {
   }
 }
 
+const getReportsByDistricts = async (req, res) => {
+  try {
+    const { districts } = req.body;
+    
+    if (!districts || !Array.isArray(districts) || districts.length === 0) {
+      return res.status(400).json({ error: "Districts array is required and must not be empty" });
+    }
+    
+    /** query for reports in the specified districts */
+    const reports = await Report.find({ district: { $in: districts } })
+      .sort({ createdtime: -1 })
+      .lean();
+    
+    if (!reports || reports.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    return res.status(200).json(reports);
+  } catch (err) {
+    return res.status(500).json({ error: "Server error", details: err.message });
+  }
+}
+
 module.exports = {
   getSingleReport,
   getReports,
   getLatestReports,
   createReport,
-  getFilteredReports
+  getFilteredReports,
+  getReportsByDistricts
 };

@@ -460,7 +460,7 @@ async function changePassword(oldPassword, newPassword, confirmPassword) {
 }
 
 async function changeDistrict() {
-  const district = document.getElementById('cirfield').value;
+  const district = document.getElementById('district').value;
 
   if (!district) {
     alert('Per favore, seleziona una circoscrizione');

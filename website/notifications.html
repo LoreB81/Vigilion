@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="style/output.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="general.js"></script>
+  <script src="menufunctions.js"></script>
+  <script src="loadselectoptions.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      checkAuth();
+    });
+  </script>
+
+  <title>Notifiche</title>
+</head>
+
+<body class="bg-gray-100">
+  <div class="bg-white">
+    <!-- Header -->
+    <div class="bg-green-500 flex justify-between items-center p-4">
+      <div class="text-white font-bold text-lg flex items-center">
+        <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+        <span>Notifiche</span>
+      </div>
+      <div>
+        <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
+      </div>
+    </div>
+    <div id="menu-container"></div>
+    <div id="main-content" class="px-2 py-4">
+      <!-- Warn/Ban Message -->
+      <div id="special-warning"></div>
+      <!-- Notifications list -->
+      <div id="notifications-list" class="flex flex-col gap-3 mt-4"></div>
+    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', async function () {
+        loadNotifications();
+      });
+
+      async function loadNotifications() {
+        // get authentication data
+        const authRes = await fetch('/api/authentication/check', { credentials: 'include' });
+        const authData = await authRes.json();
+        if (!authData.authenticated || !authData.user || !authData.user.id) {
+          window.location.replace('login.html');
+          return;
+        }
+
+        // retrieves the user's data
+        const userId = authData.user.id;
+        const userRes = await fetch(`/api/users/${userId}`, { credentials: 'include' });
+        const userData = await userRes.json();
+
+        // renders message if the user has been warned/banned
+        renderSpecialWarning(userData);
+
+        // gets all districts
+        const districts = [userData.district, ...(userData.notifications || [])];
+        const uniqueDistricts = [...new Set(districts)];
+
+        // retrieves reports filtered by districts
+        const reportsRes = await fetch('/api/reports/by-districts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ districts: uniqueDistricts }),
+          credentials: 'include'
+        });
+
+        let reports = await reportsRes.json();
+        if (!Array.isArray(reports)) reports = [];
+
+        // district filter
+        reports = reports.filter(r => uniqueDistricts.includes(r.district));
+
+        // orders the reports
+        reports.sort((a, b) => (b.createdtime || '').localeCompare(a.createdtime || ''));
+        await renderNotifications(reports);
+      }
+
+      function renderSpecialWarning(user) {
+        const container = document.getElementById('special-warning');
+        container.innerHTML = '';
+        if (user.blocked) {
+          container.innerHTML = `
+            <div class="border border-red-400 rounded-xl p-3 mb-3 flex items-center gap-3 bg-red-50">
+              <span class="text-3xl">🚫</span>
+              <div>
+                <div class="font-bold">Vigilion <span class="text-xs text-gray-500 ml-2">${formatDate(new Date())}</span></div>
+                <div class="text-sm mt-1">Il tuo account è stato sospeso per aver violato le norme della community.</div>
+              </div>
+            </div>
+          `;
+        } else if (user.warned) {
+          container.innerHTML = `
+            <div class="border border-yellow-400 rounded-xl p-3 mb-3 flex items-center gap-3 bg-yellow-50">
+              <span class="text-3xl">⚠️</span>
+              <div>
+                <div class="font-bold">Vigilion <span class="text-xs text-gray-500 ml-2">${formatDate(new Date())}</span></div>
+                <div class="text-sm mt-1">Il tuo account è stato ammonito a causa di un utilizzo improprio. La prossima volta il tuo account verrà sospeso.</div>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      async function renderNotifications(reports) {
+        const container = document.getElementById('notifications-list');
+        container.innerHTML = '';
+        if (!reports.length) {
+          container.innerHTML = '<div class="text-gray-400 text-center py-8">Nessuna notifica disponibile</div>';
+          return;
+        }
+        
+        // retrieves usernames of all reports
+        const userNames = await Promise.all(reports.map(async (report) => {
+          try {
+            const res = await fetch(`/api/users/${report.user}/name`, { credentials: 'include' });
+            if (!res.ok) return { firstname: 'Utente', lastname: '' };
+            return await res.json();
+          } catch {
+            return { firstname: 'Utente', lastname: '' };
+          }
+        }));
+
+        reports.forEach((report, idx) => {
+          const reportElement = document.createElement('div');
+          reportElement.className = 'block w-full text-left border rounded-lg p-3 mt-2 hover:bg-gray-100 transition';
+
+          // get user's first name and last name initial
+          const firstname = userNames[idx].firstname || 'Utente';
+          const lastnameInitial = userNames[idx].lastname ? userNames[idx].lastname.charAt(0) : '';
+
+          const createdtime = new Date(report.createdtime);
+          const day = createdtime.toLocaleDateString("it-IT", { day: '2-digit' });
+          const month = createdtime.toLocaleDateString("it-IT", { month: '2-digit' });
+          const year = createdtime.toLocaleDateString("it-IT", { year: 'numeric' });
+          const hour = createdtime.toLocaleTimeString("it-IT", { hour: '2-digit', minute: '2-digit' });
+
+          const formattedTime = `${day}/${month}/${year} ${hour}`;
+
+          reportElement.innerHTML = `
+            <a href="reportdetails.html?id=${report.id}" class="no-underline text-inherit">
+              <div class="flex justify-between items-center">
+                <span class="font-bold">${firstname} ${lastnameInitial}.</span>
+                <span class="text-xs">${formattedTime}</span>
+              </div>
+              <div class="text-sm text-gray-600 mt-1">
+                <span class="font-semibold">${report.typology}</span> - ${report.district}
+              </div>
+              <div class="text-sm mt-1 mb-2">${report.notes}</div>
+            </a>
+            <div class="flex space-x-4 mt-2">
+              <button class="flex items-center text-green-600 upvote-btn" id="upvote-${report.id}">👍<span class="ml-1" id="upvote-count-${report.id}">${report.upvote}</span></button>
+              <button class="flex items-center text-red-600 downvote-btn" id="downvote-${report.id}">👎<span class="ml-1" id="downvote-count-${report.id}">${report.downvote}</span></button>
+            </div>
+          `;
+
+          container.appendChild(reportElement);
+
+          initializeVoteButtons(report.id);
+        });
+      }
+
+      function formatDate(date) {
+        if (!date) return '';
+        if (typeof date === 'string') date = new Date(date);
+        return date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      }
+    </script>
+</body>
+</html>

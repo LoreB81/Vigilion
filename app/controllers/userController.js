@@ -20,7 +20,8 @@ const getUserData = async (req, res) => {
       district: user.district,
       admin: user.admin,
       warned: user.warned,
-      blocked: user.blocked
+      blocked: user.blocked,
+      notifications: user.notifications
     };
 
     return res.status(200).json(userData);
@@ -41,6 +42,20 @@ const getUsersData = async (req, res) => {
     return res.status(200).json(users);
   } catch (err) {
     return res.status(500).json({ error: "Server error", details: err.message });
+  }
+};
+
+const getUserName = async (req, res) => {
+  try {
+    const user = await User.findOne({ id: req.params.id });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    /** returns just the first and last name of the user */
+    return res.status(200).json({ firstname: user.firstname, lastname: user.lastname });
+  } catch (err) {
+    return res.status(500).json({ error: 'Server error', details: err.message });
   }
 };
 
@@ -203,6 +218,28 @@ const changeEmail = async (req, res) => {
   }
 };
 
+const changeNotifications = async (req, res) => {
+  try {
+    const userId = req.cookies.logged_user;
+    const user = await User.findOne({ id: userId });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (!Array.isArray(req.body.notifications)) {
+      return res.status(400).json({ error: "Notifications must be an array" });
+    }
+    
+    user.notifications = req.body.notifications;
+    await user.save();
+    return res.status(200).json({ success: true, message: "Notifications updated" });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: "Error while updating notifications", details: err.message });
+  }
+};
+
 /** PATCH: /api/users/:id/warn */
 const warnUser = async (req, res) => {
   if (!(await isAdmin(req))) {
@@ -290,10 +327,12 @@ function checkIfEmailInString(email) {
 module.exports = {
   getUserData,
   getUsersData,
+  getUserName,
   registerUser,
   changePassword,
   changeDistrict,
   changeEmail,
+  changeNotifications,
   warnUser,
   banUser,
   reactivateUser

@@ -15,11 +15,13 @@ router.get('/api-docs', swaggerUi.setup(swaggerDocument));
 
 /* user routes */
 router.get('/:id', userController.getUserData);
+router.get('/:id/name', userController.getUserName);
 router.get('/', userController.getUsersData);
 router.post('/', userController.registerUser);
 router.post('/change-password', userController.changePassword);
 router.post('/change-district', userController.changeDistrict);
 router.post('/change-email', userController.changeEmail);
+router.post('/change-notifications', userController.changeNotifications);
 router.patch('/:id/warn', userController.warnUser);
 router.patch('/:id/ban', userController.banUser);
 router.patch('/:id/reactivate', userController.reactivateUser);

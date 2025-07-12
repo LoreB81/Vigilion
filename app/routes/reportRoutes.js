@@ -21,6 +21,7 @@ router.get('/latest', reportController.getLatestReports);
 router.get('/:id', reportController.getSingleReport);
 router.post('/', tokenChecker, reportController.createReport);
 router.post('/filtered', reportController.getFilteredReports);
+router.post('/by-districts', reportController.getReportsByDistricts);
 
 /** voting routes */
 router.post('/:id/vote', tokenChecker, voteController.handleVote);

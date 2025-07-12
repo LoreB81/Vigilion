@@ -8,8 +8,9 @@ const UserSchema = new mongoose.Schema({
   email: {type: String, required: true},
   password: {type: String, required: true},
   district: {type: String, required: true},
-  blocked: {type: Boolean, default: false},
+  notifications: {type: [String], default: []},
   warned: {type: Boolean, default: false},
+  blocked: {type: Boolean, default: false},
   admin: {type: Boolean, default: false}
 });
 

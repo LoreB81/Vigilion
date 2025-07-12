@@ -24,18 +24,42 @@ components:
         - lastname
         - email
         - password
-        - circoscrizione
+        - district
+        - notifications
+        - warned
+        - blocked
+        - admin
       properties:
         id:
           type: string
+          description: UUID dell'utente
         firstname:
           type: string
+          description: Nome dell'utente
         lastname:
           type: string
+          description: Cognome dell'utente
         email:
           type: string
+          description: Email dell'utente
         password:
           type: string
+          description: Password associata all'utente
+        district:
+          type: string
+          description: Circoscrizione di residenza dell'utente
+        notifications:
+          type: array
+          description: Array contenente le circoscrizioni da cui l'utente riceverà notifiche
+        warned:
+          type: boolean
+          description: Valore booleano che indica se l'utente è stato ammonito per l'utilizzo della piattaforma
+        blocked:
+          type: boolean
+          description: Valore booleano che indica se l'utente è stato bandito dalla creazione di segnalazioni
+        admin:
+          type: boolean
+          description: Valore booleano che indica se l'utente è amministratore
     Report:
       type: object
       required:
@@ -43,16 +67,17 @@ components:
         - typology
         - notes
         - location
+        - district
         - upvote
         - downvote
         - createdtime
       properties:
         id:
           type: integer
-          description: ID autogenerato della segnalazione
+          description: ID autogenerato incrementale della segnalazione
         user:
           type: string
-          description: ID dell'utente
+          description: UUID dell'utente che ha creato la segnalazione
         typology:
           type: string
           enum: [Furto, Aggressione, Molestia, Soggetto armato, Soggetto alterato, Altro]
@@ -81,18 +106,18 @@ components:
       properties:
         user:
           type: string
-          description: ID dell'utente
+          description: UUID dell'utente
         report:
           type: integer
           description: ID della segnalazione
         voteType:
           type: string
           enum: [upvote, downvote]
-          description: Tipo di voto
+          description: Tipologia di voto
         createdAt:
           type: string
           format: date-time
-          description: Data e ora del voto
+          description: Data ed ora del voto
   responses:
     NotFound:
       description: Risorsa non trovata
@@ -230,6 +255,42 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
   
+  /users/{id}/name:
+    get:
+      summary: Restituisce solo nome e cognome dell'utente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente
+      responses:
+        "200":
+          description: Nome e cognome dell'utente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  firstname:
+                    type: string
+                  lastname:
+                    type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          description: Errore del server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  details:
+                    type: string
+
   /users/{id}/warn:
     patch:
       summary: Ammonisci un utente
@@ -541,6 +602,53 @@ paths:
         "500":
           description: Errore del server
 
+  /users/change-notifications:
+    post:
+      summary: Modifica le circoscrizioni di notifica dell'utente
+      description: Modifica le circoscrizioni per cui l'utente autenticato desidera ricevere notifiche
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - notifications
+              properties:
+                notifications:
+                  type: array
+                  items:
+                    type: string
+                  description: Lista delle circoscrizioni per cui ricevere notifiche
+      responses:
+        "200":
+          description: Notifiche aggiornate con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: True se la modifica è riuscita
+                  message:
+                    type: string
+                    description: Messaggio di conferma
+        "400":
+          description: Parametri non validi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Messaggio di errore
+        "401":
+          description: Utente non autenticato
+        "500":
+          description: Errore del server
+
   /reports:
     summary: Gestione delle segnalazioni
     description: Creazione in POST di una nuova segnalazione e restituzione in GET di tutte le segnalazioni
@@ -613,6 +721,57 @@ paths:
                   $ref: "#/components/schemas/Report"
         "404":
           $ref: "#/components/responses/NotFound"
+        "500":
+          description: Errore del server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Messaggio di errore
+                  details:
+                    type: string
+                    description: Dettagli dell'errore
+
+  /reports/by-districts:
+    post:
+      summary: Recupera segnalazioni per circoscrizioni
+      description: Recupera le segnalazioni filtrate per una o più circoscrizioni, ordinate per data di creazione decrescente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - districts
+              properties:
+                districts:
+                  type: array
+                  items:
+                    type: string
+                  description: Lista delle circoscrizioni per cui recuperare le segnalazioni
+      responses:
+        "200":
+          description: Lista delle segnalazioni filtrate per circoscrizioni
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Report"
+        "400":
+          description: Parametri non validi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Messaggio di errore
         "500":
           description: Errore del server
           content:

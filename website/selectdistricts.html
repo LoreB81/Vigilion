@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="style/output.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="general.js"></script>
+  <script src="menufunctions.js"></script>
+  <script src="loadselectoptions.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      checkAuth();
+    });
+  </script>
+
+  <title>Impostazioni</title>
+</head>
+
+<body class="bg-gray-100">
+  <div class="bg-white">
+    <!-- Header -->
+    <div class="bg-green-500 flex justify-between items-center p-4">
+      <div class="text-white font-bold text-lg flex items-center">
+        <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+        <span>Zone di interesse</span>
+      </div>
+      <div>
+        <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
+      </div>
+    </div>
+    <div id="menu-container"></div>
+    <div class="flex flex-col items-center mt-8">
+      <h2 class="text-2xl font-bold mb-2">Circoscrizioni</h2>
+      <p class="text-gray-600 mb-4 text-center max-w-xs">Selezionare tutte le circoscrizioni per le quali si desidera ricevere notifiche</p>
+      <div id="districts-container" class="grid grid-cols-2 gap-3 mb-6"></div>
+      <button id="confirm-btn" class="bg-green-500 text-white font-bold py-2 px-8 rounded-full text-lg shadow-md transition-colors duration-200 hover:bg-green-600">Conferma</button>
+    </div>
+    <script>
+      const DISTRICTS = [
+        "Gardolo", "Meano", "Bondone", "Sardagna", "Romagnano", "Argentario", "Povo", "Mattarello", "Villazzano", "Oltrefersina", "San Giuseppe-Santa Chiara", "Centro Storico-Piedicastello"
+      ];
+
+      let userDistrict = null;
+      let userNotifications = [];
+      let userId = null;
+
+      async function loadUserData() {
+        // retrieves authdata for the user
+        const authRes = await fetch('/api/authentication/check', { credentials: 'include' });
+        const authData = await authRes.json();
+        if (!authData.authenticated || !authData.user || !authData.user.id) {
+          window.location.replace('login.html');
+          return;
+        }
+
+        // retrieves the user data needed
+        userId = authData.user.id;
+        const userRes = await fetch(`/api/users/${userId}`, { credentials: 'include' });
+        const userData = await userRes.json();
+        userDistrict = userData.district;
+        userNotifications = userData.notifications || [];
+        renderDistricts();
+      }
+
+      function renderDistricts() {
+        const container = document.getElementById('districts-container');
+        container.innerHTML = '';
+
+        // for each district defined
+        DISTRICTS.forEach(district => {
+          const isUserDistrict = district === userDistrict;
+          const isNotification = userNotifications.includes(district);
+
+          const btn = document.createElement('button');
+          btn.textContent = district;
+
+          if (isUserDistrict) {
+            btn.className = 'rounded-full px-4 py-2 m-1 border font-semibold bg-green-600 text-white border-green-700 cursor-not-allowed selected';
+            btn.disabled = true;
+          } else if (isNotification) {
+            btn.className = 'rounded-full px-4 py-2 m-1 border font-semibold duration-200 bg-white text-black border-gray-400 selected';
+          } else {
+            btn.className = 'rounded-full px-4 py-2 m-1 border font-semibold duration-200 bg-white text-black border-gray-400 hover:bg-green-100';
+          }
+
+          btn.dataset.district = district;
+          btn.addEventListener('click', function() {
+            if (isUserDistrict) return;
+            if (btn.classList.contains('selected')) {
+              btn.classList.remove('bg-green-400', 'selected');
+              btn.classList.add('bg-white');
+            } else {
+              btn.classList.remove('bg-white');
+              btn.classList.add('bg-green-400', 'selected');
+            }
+          });
+
+          container.appendChild(btn);
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        loadUserData();
+        document.getElementById('confirm-btn').addEventListener('click', async function() {
+          // get all selected districts
+          const selected = Array.from(document.querySelectorAll('#districts-container button.selected'))
+            .map(btn => btn.dataset.district)
+            .filter(d => d !== userDistrict);
+          
+          // send the selected district to save
+          try {
+            const res = await fetch('/api/users/change-notifications', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ notifications: selected })
+            });
+            const data = await res.json();
+            if (data.success) {
+              alert('Preferenze di notifica aggiornate!');
+            } else {
+              alert(data.error || 'Errore nel salvataggio delle preferenze');
+            }
+          } catch (e) {
+            alert('Errore di rete nel salvataggio delle preferenze');
+          }
+        });
+      });
+    </script>
+</body>
+</html>
