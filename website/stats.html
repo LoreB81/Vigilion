@@ -144,6 +144,7 @@
             <div class="text-sm mb-2">${filters.startDate ? formatDate(filters.startDate) : "Inizio"} - ${filters.endDate ? formatDate(filters.endDate) : "Fine"}</div>
             <ul class="mb-2">
         `;
+
         typologies.forEach(t => {
           html += `<li>
                       <b>${t.label}:</b> ${counts[t.key]} 
@@ -163,7 +164,7 @@
               <div class="block w-full text-left border rounded-lg p-3 mt-2 hover:bg-gray-100 transition">
                 <a href="reportdetails.html?id=${topReport.id}" class="no-underline text-inherit">
                   <div class="flex justify-between items-center">
-                    <span class="font-bold">${userName} ${userInitial}.</span>
+                    <span class="font-bold">${userName} ${userInitial ? userInitial + '.' : ''}</span>
                     <span class="text-xs">${topReport.createdtime ? formatDateTime(topReport.createdtime) : ''}</span>
                   </div>
                   <div class="text-sm mt-1 mb-2">${topReport.notes}</div>

@@ -25,5 +25,6 @@ router.post('/change-notifications', userController.changeNotifications);
 router.patch('/:id/warn', userController.warnUser);
 router.patch('/:id/ban', userController.banUser);
 router.patch('/:id/reactivate', userController.reactivateUser);
+router.delete('/delete-account', userController.deleteUser);
 
 module.exports = router;

@@ -58,6 +58,16 @@ const createReport = async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    // Check if user is blocked
+    const userDoc = await User.findOne({ id: user });
+    if (!userDoc) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (userDoc.blocked) {
+      return res.status(403).json({ error: "User banned. Can't create report" });
+    }
+
     const district = await districtChecker(req.body.location);
     if (district != "Error") {
       const locationString = JSON.stringify(req.body.location);

@@ -149,7 +149,7 @@
           reportElement.innerHTML = `
             <a href="reportdetails.html?id=${report.id}" class="no-underline text-inherit">
               <div class="flex justify-between items-center">
-                <span class="font-bold">${firstname} ${lastnameInitial}.</span>
+                <span class="font-bold">${firstname} ${lastnameInitial ? lastnameInitial + '.' : ''}</span>
                 <span class="text-xs">${formattedTime}</span>
               </div>
               <div class="text-sm text-gray-600 mt-1">

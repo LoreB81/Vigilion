@@ -283,6 +283,39 @@ const reactivateUser = async (req, res) => {
   res.json({ success: true, message: 'User reactivated' });
 };
 
+/** DELETE: /api/users/delete-account */
+const deleteUser = async (req, res) => {
+  try {
+    /** get the user's ID from cookies */
+    const userId = req.cookies.logged_user;
+    
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    /** find the user using the ID retrieved before */
+    const user = await User.findOne({ id: userId });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    /** delete the user from the database */
+    await User.deleteOne({ id: userId });
+
+    /** clear the authentication cookie */
+    res.clearCookie('logged_user');
+    res.clearCookie('auth_token');
+
+    return res.status(200).json({
+      success: true,
+      message: "Account deleted successfully"
+    });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: "Error while deleting account", details: err.message });
+  }
+};
+
 /**
  * Checks if the user is an admin
  * @param {Request} req - The request object
@@ -335,5 +368,6 @@ module.exports = {
   changeNotifications,
   warnUser,
   banUser,
-  reactivateUser
+  reactivateUser,
+  deleteUser
 };

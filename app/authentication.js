@@ -60,12 +60,6 @@ router.post('', async function(req, res) {
 			return;
 		}
 	}
-
-	/** check if user is blocked */
-	if (user.blocked) {
-		res.status(403).json({ success: false, message: 'The account is blocked by the admins' });
-		return;
-	}
 	
 	var payload = {
 		email: user.email,

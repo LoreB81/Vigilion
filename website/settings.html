@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!--./tailwindcss -i input.css -o output.css --minify-->
 <html lang="it">
 
 <head>
@@ -76,7 +75,7 @@
 
       <button
         class="w-80 border border-gray-400 text-gray-700 font-semibold py-3 rounded-full shadow-sm hover:bg-gray-200"
-        onclick="alert('Funzione non ancora disponibile')">Elimina account</button>
+        onclick="deleteAccount()">Elimina account</button>
     </div>
 
     <!-- Logout -->
@@ -86,6 +85,29 @@
     </div>
     <br>
   </div>
-</body>
 
+  <script>
+    function deleteAccount() {
+      if (confirm('Sei sicuro di voler eliminare il tuo account? Questa azione non può essere annullata.')) {
+        fetch('/api/users/delete-account', {
+          method: 'DELETE',
+          credentials: 'include'
+        })
+        .then(response => {
+          if (response.ok) {
+            alert('Account eliminato con successo');
+            window.location.href = 'index.html';
+          } else {
+            return response.json().then(data => {
+              throw new Error(data.error || 'Errore durante l\'eliminazione dell\'account');
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Errore: ' + error.message);
+        });
+      }
+    }
+  </script>
+</body>
 </html>

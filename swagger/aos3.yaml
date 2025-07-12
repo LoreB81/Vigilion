@@ -649,6 +649,58 @@ paths:
         "500":
           description: Errore del server
 
+  /users/delete-account:
+    delete:
+      summary: Elimina l'account dell'utente
+      description: Permette all'utente autenticato di eliminare il proprio account dal database. Le segnalazioni e i voti associati rimangono salvati.
+      responses:
+        "200":
+          description: Account eliminato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: "True se l'eliminazione è riuscita"
+                  message:
+                    type: string
+                    description: Messaggio di conferma
+        "401":
+          description: Utente non autenticato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Messaggio di errore
+        "404":
+          description: Utente non trovato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Messaggio di errore
+        "500":
+          description: Errore del server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Messaggio di errore
+                  details:
+                    type: string
+                    description: Dettagli dell'errore
+
   /reports:
     summary: Gestione delle segnalazioni
     description: Creazione in POST di una nuova segnalazione e restituzione in GET di tutte le segnalazioni

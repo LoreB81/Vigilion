@@ -111,7 +111,7 @@
 
           // get user's first name and last name initial
           const userName = report.userName ? report.userName.split(' ')[0] : 'Utente';
-          const userInitial = report.userName ? report.userName.split(' ')[1]?.charAt(0) || '' : '';
+          const userInitial = report.userName && userName != 'Utente' ? report.userName.split(' ')[1]?.charAt(0) || '' : '';
 
           const createdtime = new Date(report.createdtime);
           const day = createdtime.toLocaleDateString("it-IT", { day: '2-digit' });
@@ -124,7 +124,7 @@
           reportElement.innerHTML = `
             <a href="reportdetails.html?id=${report.id}" class="no-underline text-inherit">
               <div class="flex justify-between items-center">
-                <span class="font-bold">${userName} ${userInitial}.</span>
+                <span class="font-bold">${userName} ${userInitial ? userInitial + '.' : ''}</span>
                 <span class="text-xs">${formattedTime}</span>
               </div>
               <div class="text-sm text-gray-600 mt-1">

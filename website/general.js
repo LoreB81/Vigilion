@@ -71,10 +71,6 @@ function login() {
     body: JSON.stringify({ email: email, password: password })
   })
   .then(response => {
-    if (!response.ok && response.status == 403) {
-      alert("Il tuo utente è stato bloccato dagli amministratori");
-    }
-
     if (!response.ok && response.status == 404) {
       alert("Credenziali inserite non valide");
     }
@@ -143,7 +139,7 @@ function checkAuth() {
   });
 }
 
-function createReport() {
+async function createReport() {
   const typology = document.getElementById('typology');
   const notes = document.getElementById('notes');
   
@@ -158,6 +154,44 @@ function createReport() {
     alert("Mancano dei campi necessari");
     return;
   }
+
+  // Check if user is blocked before proceeding
+  try {
+    const authResponse = await fetch('/api/authentication/check', {
+      credentials: 'include'
+    });
+    
+    if (!authResponse.ok) {
+      throw new Error('Authentication check failed');
+    }
+    
+    const authData = await authResponse.json();
+    
+    if (!authData.authenticated || !authData.user || !authData.user.id) {
+      alert('Devi essere autenticato per creare una segnalazione');
+      return;
+    }
+
+    // get user data to check if blocked
+    const userResponse = await fetch(`/api/users/${authData.user.id}`, {
+      credentials: 'include'
+    });
+    
+    if (!userResponse.ok) {
+      throw new Error('Failed to fetch user data');
+    }
+    
+    const userData = await userResponse.json();
+    
+    if (userData.blocked) {
+      alert('Account bloccato. Non puoi creare nuove segnalazioni.');
+      return;
+    }
+  } catch (error) {
+    console.error('Error checking user status:', error);
+    alert('Errore durante il controllo dello stato utente');
+    return;
+  }
   
   // get marker position in JSON format (lat/lng)
   const position = [marker.getLatLng().lat, marker.getLatLng().lng];
@@ -166,39 +200,45 @@ function createReport() {
   const now = new Date();
   const createdtime = now.toISOString().slice(0, 10) + ' ' + now.toTimeString().slice(0, 5);
 
-  fetch('/api/reports', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    credentials: 'include',
-    body: JSON.stringify({
-      typology: typology.value,
-      notes: notes.value,
-      location: position,
-      createdtime: createdtime
-    })
-  })
-  .then(response => {
+  try {
+    const response = await fetch('/api/reports', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        typology: typology.value,
+        notes: notes.value,
+        location: position,
+        createdtime: createdtime
+      })
+    });
+
     if (!response.ok && response.status == 422) {
       alert("Impossibile trovare la circoscrizione di appartenenza delle coordinate inserite");
+      return;
+    }
+
+    if (!response.ok && response.status == 403) {
+      const data = await response.json();
+      alert(data.error || 'Account bloccato. Non puoi creare nuove segnalazioni.');
+      return;
     }
 
     if (!response.ok) {
-      return response.json().then(data => {
-        throw new Error(data.error || 'Errore durante la creazione della segnalazione');
-      });
+      const data = await response.json();
+      alert(data.error || 'Errore durante la creazione della segnalazione');
+      return;
     }
-    return response.json();
-  })
-  .then(data => {
+
     alert("Grazie per la segnalazione!");
     notes.value = "";
     window.location.reload();
-  })
-  .catch(error => {
+  } catch (error) {
     console.error('Error:', error);
-  });
+    alert('Errore durante la creazione della segnalazione');
+  }
 }
 
 async function fetchLatestReports() {
