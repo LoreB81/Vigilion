@@ -11,7 +11,7 @@ const getUserData = async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    /** return user's data without sensitive information */
+    /** return user's data */
     const userData = {
       id: user.id,
       firstname: user.firstname,
@@ -21,7 +21,8 @@ const getUserData = async (req, res) => {
       admin: user.admin,
       warned: user.warned,
       blocked: user.blocked,
-      notifications: user.notifications
+      notifications: user.notifications,
+      feedbacks: user.feedbacks
     };
 
     return res.status(200).json(userData);
@@ -97,6 +98,70 @@ const registerUser = async (req, res) => {
     return res.status(201).json(savedUser);
   } catch (err) {
     return res.status(500).json({ error: "Registration failed", details: err.message });
+  }
+};
+
+const addFeedback = async (req, res) => {
+  try {
+    const userId = req.cookies.logged_user;
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+    
+    const user = await User.findOne({ id: userId });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const { text } = req.body;
+    if (!text || typeof text !== 'string' || text.trim() === '') {
+      return res.status(400).json({ error: "Feedback text is required" });
+    }
+
+    /** calculates current date and sends feedback */
+    const now = new Date();
+    const date = now.toISOString().slice(0, 10);
+    user.feedbacks.push({ text, date });
+    await user.save();
+    return res.status(200).json({ success: true, message: "Feedback inviato" });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: "Errore durante l'invio del feedback", details: err.message });
+  }
+};
+
+const getAllFeedbacks = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    /** retrieves all users that have at least one feedback */
+    const users = await User.find({ feedbacks: { $ne: [] } });
+    let feedbacks = [];
+    users.forEach(user => {
+      user.feedbacks.forEach(feedback => {
+        feedbacks.push({
+          firstname: user.firstname,
+          lastname: user.lastname,
+          text: feedback.text,
+          date: feedback.date
+        });
+      });
+    });
+
+    /** date filtering */
+    if (startDate) {
+      feedbacks = feedbacks.filter(fb => fb.date >= startDate);
+    }
+
+    if (endDate) {
+      feedbacks = feedbacks.filter(fb => fb.date <= endDate);
+    }
+
+    /** orders by date descending */
+    feedbacks.sort((a, b) => b.date.localeCompare(a.date));
+    return res.status(200).json(feedbacks);
+  } catch (err) {
+    return res.status(500).json({ error: "Errore durante il recupero dei feedback", details: err.message });
   }
 };
 
@@ -362,6 +427,8 @@ module.exports = {
   getUsersData,
   getUserName,
   registerUser,
+  addFeedback,
+  getAllFeedbacks,
   changePassword,
   changeDistrict,
   changeEmail,

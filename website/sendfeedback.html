@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="style/output.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="general.js"></script>
+  <script src="menufunctions.js"></script>
+  <script src="loadselectoptions.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      checkAuth();
+    });
+  </script>
+
+  <title>Impostazioni</title>
+</head>
+
+<body class="bg-gray-100">
+  <div class="bg-white">
+    <!-- Header -->
+    <div class="bg-green-500 flex justify-between items-center p-4">
+      <div class="text-white font-bold text-lg flex items-center">
+        <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+        <span>Invio feedback</span>
+      </div>
+      <div>
+        <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
+      </div>
+    </div>
+    <div id="menu-container"></div>
+    <div class="flex flex-col items-center justify-center min-h-[60vh]">
+      <div class="w-full max-w-md bg-white rounded-xl shadow-md p-4 mt-6 border border-gray-300">
+        <h2 class="text-xl font-bold text-center mb-2">Lascia un feedback</h2>
+        <form id="feedbackForm" class="flex flex-col items-center">
+          <textarea id="feedbackText" name="feedbackText" rows="5" placeholder="Facci sapere la tua" class="w-full rounded-xl border-2 border-gray-400 p-3 focus:outline-none focus:border-green-500 resize-none text-gray-700 mb-4"></textarea>
+          <button type="submit" class="bg-green-400 text-white font-bold rounded-full px-8 py-2 mt-2 text-lg shadow-md hover:bg-red-600 transition">Invia</button>
+        </form>
+      </div>
+    </div>
+  </div>
+    <script>
+      document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // check if the feedback is compiled
+        const text = document.getElementById('feedbackText').value.trim();
+        if (!text) {
+          alert('Inserisci un feedback prima di inviare.');
+          return;
+        }
+
+        try {
+          const response = await fetch('/api/users/send-feedback', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ text })
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            alert('Feedback inviato con successo!');
+            document.getElementById('feedbackText').value = '';
+          } else {
+            alert(data.error || 'Errore durante l\'invio del feedback.');
+          }
+        } catch (err) {
+          console.error('Errore di rete durante l\'invio del feedback.');
+        }
+      });
+    </script>
+</body>
+</html>

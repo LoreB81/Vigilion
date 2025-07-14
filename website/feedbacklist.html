@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="style/output.css" rel="stylesheet">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="general.js"></script>
+  <script src="menufunctions.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script>
+    document.addEventListener('DOMContentLoaded', async function () {
+      // checks if the user is admin
+      const isAdmin = await checkAdminAuth();
+      if (!isAdmin) {
+        return;
+      }
+    });
+  </script>
+
+  <title>Lista feedback</title>
+</head>
+
+<body class="bg-gray-100">
+  <div class="bg-white">
+    <!-- Header -->
+    <div class="bg-green-500 flex justify-between items-center p-4">
+      <div class="text-white font-bold text-lg flex items-center">
+        <img src="media/logo.png" alt="Logo" class="w-8 h-8 mr-2">
+        <span>Lista feedback</span>
+      </div>
+      <div>
+        <button id="menu-toggle" class="text-white text-3xl">&#9776;</button>
+      </div>
+    </div>
+    <div id="menu-container"></div>
+  </div>
+
+  <!-- Title -->
+  <h2 class="text-center text-xl font-bold my-4">Lista feedback degli utenti</h2>
+
+  <!-- Date filters -->
+  <div class="px-4 space-y-2">
+    <div class="flex space-x-2">
+      <input type="date" id="startDate" class="w-1/2 p-2 border rounded-full shadow-sm">
+      <input type="date" id="endDate" class="w-1/2 p-2 border rounded-full shadow-sm">
+    </div>
+  </div>
+
+  <!-- Feedback list -->
+  <div id="feedbackList" class="p-4 w-full flex flex-col gap-2"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      async function loadFeedbacks() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        // constructing the URL
+        let url = '/api/users/feedbacks';
+        const params = [];
+        if (startDate) params.push(`startDate=${encodeURIComponent(startDate)}`);
+        if (endDate) params.push(`endDate=${encodeURIComponent(endDate)}`);
+        if (params.length > 0) url += '?' + params.join('&');
+
+        try {
+          const res = await fetch(url, { credentials: 'include' });
+          const data = await res.json();
+          const list = document.getElementById('feedbackList');
+          list.innerHTML = '';
+
+          if (Array.isArray(data) && data.length > 0) {
+            // appends each feedback retrieved
+            data.forEach(fb => {
+              const div = document.createElement('div');
+              div.className = 'bg-white p-4 rounded shadow';
+              div.innerHTML = `
+                <div class="flex justify-between items-center">
+                  <div class="font-semibold">${fb.firstname} ${fb.lastname}</div>
+                  <div class="text-sm text-gray-500">${formatDate(fb.date)}</div>
+                </div>
+                <div class="text-gray-800 mt-1">${fb.text}</div>
+              `;
+              list.appendChild(div);
+            });
+          } else {
+            list.innerHTML = '<div class="text-center text-gray-500">Nessun feedback trovato.</div>';
+          }
+        } catch (err) {
+          document.getElementById('feedbackList').innerHTML = '<div class="text-center text-red-500">Errore nel recupero dei feedback.</div>';
+        }
+      }
+
+      // loads feedbacks on page loaded
+      loadFeedbacks();
+
+      // loads feedbacks on date filter change
+      document.getElementById('startDate').addEventListener('change', loadFeedbacks);
+      document.getElementById('endDate').addEventListener('change', loadFeedbacks);
+    });
+
+    // format date dd-mm-yyyy
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${dd}-${mm}-${yyyy}`;
+      }
+  </script>
+</body>
+</html>

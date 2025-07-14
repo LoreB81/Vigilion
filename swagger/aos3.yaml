@@ -60,6 +60,18 @@ components:
         admin:
           type: boolean
           description: Valore booleano che indica se l'utente è amministratore
+        feedbacks:
+          type: array
+          description: Lista dei feedback inviati dall'utente
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+                description: Testo del feedback
+              date:
+                type: string
+                description: Data di invio del feedback (formato yyyy-mm-dd)
     Report:
       type: object
       required:
@@ -458,6 +470,130 @@ paths:
           description: Utente creato
         "400":
           $ref: "#/components/responses/BadRequest"
+  
+  /users/send-feedback:
+    post:
+      summary: Invia un feedback
+      description: Permette all'utente autenticato di inviare un feedback che verrà aggiunto al proprio profilo.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  description: Testo del feedback
+      responses:
+        "200":
+          description: Feedback inviato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: True se il feedback è stato inviato
+                  message:
+                    type: string
+                    description: Messaggio di conferma
+        "400":
+          description: Testo del feedback mancante o non valido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "401":
+          description: Utente non autenticato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "404":
+          description: Utente non trovato
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "500":
+          description: Errore del server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  details:
+                    type: string
+
+  /users/feedbacks:
+    get:
+      summary: Recupera la lista di feedback degli utenti
+      description: >
+        Restituisce la lista di tutti i feedback inviati dagli utenti, ciascuno con nome, cognome, testo e data di creazione, ordinati per data decrescente. È possibile filtrare i feedback tramite parametri opzionali di data inizio (startDate) e data fine (endDate) nel formato yyyy-mm-dd.
+      parameters:
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+          required: false
+          description: Data di inizio (inclusiva) per filtrare i feedback (formato yyyy-mm-dd)
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+          required: false
+          description: Data di fine (inclusiva) per filtrare i feedback (formato yyyy-mm-dd)
+      responses:
+        "200":
+          description: Lista dei feedback degli utenti
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    firstname:
+                      type: string
+                      description: Nome dell'utente
+                    lastname:
+                      type: string
+                      description: Cognome dell'utente
+                    text:
+                      type: string
+                      description: Testo del feedback
+                    date:
+                      type: string
+                      format: date
+                      description: Data di invio del feedback (formato yyyy-mm-dd)
+        "500":
+          description: Errore del server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  details:
+                    type: string
 
   /users/change-password:
     post:

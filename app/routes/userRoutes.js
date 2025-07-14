@@ -14,10 +14,12 @@ router.use('/api/docs', swaggerUi.serve);
 router.get('/api-docs', swaggerUi.setup(swaggerDocument));
 
 /* user routes */
+router.get('/feedbacks', userController.getAllFeedbacks);
 router.get('/:id', userController.getUserData);
 router.get('/:id/name', userController.getUserName);
 router.get('/', userController.getUsersData);
 router.post('/', userController.registerUser);
+router.post('/send-feedback', userController.addFeedback);
 router.post('/change-password', userController.changePassword);
 router.post('/change-district', userController.changeDistrict);
 router.post('/change-email', userController.changeEmail);

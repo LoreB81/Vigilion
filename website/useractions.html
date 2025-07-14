@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!--./tailwindcss -i input.css -o output.css --minify-->
 <html lang="it">
 
 <head>
@@ -97,9 +96,16 @@
       </div>
     </div>
 
+    <!-- Feedback list -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-4">Feedback</h2>
+      <div id="feedbackList">
+        <!-- Feedbacks will be loaded dynamically -->
+      </div>
+    </div>
     <!-- Reports list -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <h2 class="text-xl font-bold text-gray-800 mb-4">Dettagli segnalazioni</h2>
+      <h2 class="text-xl font-bold text-gray-800 mb-4">Segnalazioni</h2>
       <div id="reportsList">
         <!-- Reports will be loaded dynamically -->
       </div>
@@ -109,6 +115,7 @@
   <script>
     let currentUser = null;
     let userReports = [];
+    let userFeedbacks = [];
 
     // get the parameter from the URL
     function getUrlParameter(name) {
@@ -131,6 +138,7 @@
           throw new Error('Utente non trovato');
         }
         currentUser = await userResponse.json();
+        userFeedbacks = currentUser.feedbacks || [];
 
         // load user reports
         const reportsResponse = await fetch('/api/reports', { credentials: 'include' });
@@ -138,6 +146,7 @@
         userReports = allReports.filter(r => r.user === userId);
 
         displayUserData();
+        displayFeedbacks();
         displayReports();
         displayActionButtons();
 
@@ -163,7 +172,7 @@
       let statusText = '';
       if (currentUser.blocked) {
         statusIcon = '<span title="Bannato" class="text-2xl">🚫</span>';
-        statusText = '<span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">Bannato</span>';
+        statusText = '<span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">Bandito</span>';
       } else if (currentUser.warned) {
         statusIcon = '<span title="Ammonito" class="text-2xl">⚠️</span>';
         statusText = '<span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">Ammonito</span>';
@@ -177,6 +186,23 @@
       // statistics
       document.getElementById('totalReports').textContent = userReports.length;
       document.getElementById('totalVotes').textContent = userReports.reduce((sum, r) => sum + r.upvote + r.downvote, 0);
+    }
+
+    function displayFeedbacks() {
+      const feedbackList = document.getElementById('feedbackList');
+      if (!userFeedbacks || userFeedbacks.length === 0) {
+        feedbackList.innerHTML = '<div class="text-gray-400 text-center py-8">Nessun feedback lasciato</div>';
+        return;
+      }
+      const feedbacksHtml = userFeedbacks.map(fb => `
+        <div class="border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-semibold text-sm text-gray-700">${fb.date ? fb.date : ''}</span>
+          </div>
+          <div class="text-sm text-gray-600">${fb.text}</div>
+        </div>
+      `).join('');
+      feedbackList.innerHTML = feedbacksHtml;
     }
 
     function displayReports() {

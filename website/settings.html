@@ -48,29 +48,40 @@
         class="w-80 border border-gray-400 text-gray-700 font-semibold py-3 rounded-full shadow-sm hover:bg-gray-200"
         onclick="window.location.href='selectdistricts.html'">Zone di interesse</button>
       <button
+        id="sendFeedback"
         class="w-80 border border-gray-400 text-gray-700 font-semibold py-3 rounded-full shadow-sm hover:bg-gray-200"
-        onclick="alert('Funzione non ancora disponibile')">Invia feedback</button>
+        onclick="window.location.href='sendfeedback.html'">Invia feedback</button>
 
-      <!-- Control panel -->
+      <!-- Control panel and feedback list -->
       <button
         id="adminPanelLink"
         style="display:none;"
         class="w-80 border border-gray-400 text-gray-700 font-semibold py-3 rounded-full shadow-sm hover:bg-gray-200"
         onclick="window.location.href='controlpanel.html'">Pannello di controllo</button>
+      <button
+        id="adminFeedbackList"
+        style="display:none;"
+        class="w-80 border border-gray-400 text-gray-700 font-semibold py-3 rounded-full shadow-sm hover:bg-gray-200"
+        onclick="window.location.href='feedbacklist.html'">Lista feedback</button>
       <script>
-      fetch('/api/authentication/check', { credentials: 'include' })
-        .then(res => res.json())
-        .then(data => {
-          if (data.authenticated && data.user && data.user.id) {
-            fetch(`/api/users/${data.user.id}`, { credentials: 'include' })
-              .then(res => res.json())
-              .then(user => {
-                if (user.admin) {
-                  document.getElementById('adminPanelLink').style.display = 'block';
-                }
-              });
-          }
-        });
+        fetch('/api/authentication/check', { credentials: 'include' })
+          .then(res => res.json())
+          .then(data => {
+            if (data.authenticated && data.user && data.user.id) {
+              fetch(`/api/users/${data.user.id}`, { credentials: 'include' })
+                .then(res => res.json())
+                .then(user => {
+                  if (user.admin) {
+                    // show control panel and feedback list buttons
+                    document.getElementById('adminPanelLink').style.display = 'block';
+                    document.getElementById('adminFeedbackList').style.display = 'block';
+
+                    // hide send feedback button
+                    document.getElementById('sendFeedback').style.display = 'none';
+                  }
+                });
+            }
+          });
       </script>
 
       <button

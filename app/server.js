@@ -29,6 +29,13 @@ app.use(cors(corsOptions));
 
 /** imports all frontend pages */
 const projectRoot = process.cwd();
+
+/** forces login.html when opening the root directory / */
+app.get('/', (req, res) => {
+  res.sendFile(Path.join(projectRoot, 'website', 'login.html'));
+});
+
+/** serve the pages */
 app.use(express.static(projectRoot + '/website'));
 
 app.use((req, res, next) => {
