@@ -88,6 +88,12 @@
           })
         });
 
+        if (response.status === 204) {
+          // clear reports list if no report is returned
+          displayReports([]);
+          return;
+        }
+
         if (!response.ok) {
           throw new Error('Failed to fetch reports');
         }
@@ -95,6 +101,7 @@
         const reports = await response.json();
         displayReports(reports);
       } catch (error) {
+        displayReports([]);
         console.error('Error fetching reports:', error);
       }
     }

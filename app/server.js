@@ -30,7 +30,7 @@ app.use(cors(corsOptions));
 /** imports all frontend pages */
 const projectRoot = process.cwd();
 
-/** forces login.html when opening the root directory / */
+/** forces login.html when opening the root directory */
 app.get('/', (req, res) => {
   res.sendFile(Path.join(projectRoot, 'website', 'login.html'));
 });
@@ -43,10 +43,16 @@ app.use((req, res, next) => {
   next();
 });
 
+/** GET: /api/districts */
 /** expose circoscrizioni.geojson file to frontend */
 app.get('/api/districts', (req, res) => {
   const filePath = Path.join(__dirname, '', 'circoscrizioni.geojson');
-  res.sendFile(filePath);
+  
+  if (filePath) {
+    res.status(200).sendFile(filePath);
+  } else {
+    res.status(404);
+  }
 });
 
 /** database connection */

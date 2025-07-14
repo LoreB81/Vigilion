@@ -8,9 +8,9 @@ const ReportSchema = new mongoose.Schema({
   notes: {type: String, required: true},
   location: {type: String, required: true},
   district: {type: String, required: true},
-  upvote: {type: Number, required: true, default: 0},
-  downvote: {type: Number, required: true, default: 0},
-  createdtime: {type: String, required: true, default: () => {
+  upvote: {type: Number, default: 0},
+  downvote: {type: Number, default: 0},
+  createdtime: {type: String, default: () => {
     const now = new Date();
     return now.toISOString().slice(0, 10) + ' ' + now.toTimeString().slice(0, 5);
   }}

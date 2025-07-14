@@ -19,8 +19,9 @@ async function verify(token) {
   return payload;
 }
 
-/** authentication endpoint (google - yet to be implemented - and normal )*/
+/** POST: /api/authentication */
 router.post('', async function(req, res) {
+	/** authentication endpoint (google - yet to be implemented - and normal )*/
 	var user = {};
 
 	if (req.body.googleToken) {
@@ -87,36 +88,33 @@ router.post('', async function(req, res) {
 		maxAge: 86400000
 	});
 
-	res.json({
+	res.status(200).json({
 		success: true,
-		message: 'Login successful!',
-		email: user.email,
-		id: user.id,
-		self: "api/users/" + user._id
+		message: 'Login successful!'
 	});
 });
 
-/** logout endpoint */
+/** POST: /api/authentication/logout */
 router.post('/logout', function(req, res) {
 	res.clearCookie('auth_token');
 	res.clearCookie('logged_user');
-	res.json({ success: true, message: 'Logged out successfully' });
+	res.status(200).json({ success: true, message: 'Logged out successfully' });
 });
 
-/** authentication check endpoint */
+/** GET: /api/authentication/check */
 router.get('/check', function(req, res) {
 	const token = req.cookies.auth_token;
 	
 	if (!token) {
-		return res.json({ authenticated: false });
+		return res.status(400).json({ authenticated: false });
 	}
 
 	jwt.verify(token, process.env.SUPER_SECRET, function(err, decoded) {
 		if (err) {
-			return res.json({ authenticated: false });
+			return res.status(401).json({ authenticated: false });
 		}
 		
-		res.json({ 
+		res.status(200).json({ 
 			authenticated: true,
 			user: {
 				email: decoded.email,

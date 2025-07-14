@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const userController = require('../controllers/userController.js');
+const tokenChecker = require("../tokenChecker.js");
 
 const fs = require('fs');
 const yaml = require('js-yaml');
@@ -19,14 +20,14 @@ router.get('/:id', userController.getUserData);
 router.get('/:id/name', userController.getUserName);
 router.get('/', userController.getUsersData);
 router.post('/', userController.registerUser);
-router.post('/send-feedback', userController.addFeedback);
-router.post('/change-password', userController.changePassword);
-router.post('/change-district', userController.changeDistrict);
-router.post('/change-email', userController.changeEmail);
-router.post('/change-notifications', userController.changeNotifications);
-router.patch('/:id/warn', userController.warnUser);
-router.patch('/:id/ban', userController.banUser);
-router.patch('/:id/reactivate', userController.reactivateUser);
-router.delete('/delete-account', userController.deleteUser);
+router.post('/send-feedback', tokenChecker, userController.addFeedback);
+router.post('/change-password', tokenChecker, userController.changePassword);
+router.post('/change-district', tokenChecker, userController.changeDistrict);
+router.post('/change-email', tokenChecker, userController.changeEmail);
+router.post('/change-notifications', tokenChecker, userController.changeNotifications);
+router.patch('/:id/warn', tokenChecker, userController.warnUser);
+router.patch('/:id/ban', tokenChecker, userController.banUser);
+router.patch('/:id/reactivate', tokenChecker, userController.reactivateUser);
+router.delete('/delete-account', tokenChecker, userController.deleteUser);
 
 module.exports = router;

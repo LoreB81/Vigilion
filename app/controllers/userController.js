@@ -2,6 +2,7 @@ const User = require('../models/user');
 const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
 
+/** GET: /api/users/:id */
 const getUserData = async (req, res) => {
   try {
     /** querying the db using the id given in the request */
@@ -31,6 +32,7 @@ const getUserData = async (req, res) => {
   }
 };
 
+/** GET: /api/users */
 const getUsersData = async (req, res) => {
   try {
     /** querying the db without where clauses, so that all users are returned */
@@ -46,9 +48,11 @@ const getUsersData = async (req, res) => {
   }
 };
 
+/** GET: /api/users/:id/name */
 const getUserName = async (req, res) => {
   try {
     const user = await User.findOne({ id: req.params.id });
+
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -60,6 +64,7 @@ const getUserName = async (req, res) => {
   }
 };
 
+/** POST: /api/users */
 const registerUser = async (req, res) => {
   try {
     /** looking if a user with the same email already exists */
@@ -101,6 +106,7 @@ const registerUser = async (req, res) => {
   }
 };
 
+/** POST: /api/users/send-feedback */
 const addFeedback = async (req, res) => {
   try {
     const userId = req.cookies.logged_user;
@@ -123,13 +129,13 @@ const addFeedback = async (req, res) => {
     const date = now.toISOString().slice(0, 10);
     user.feedbacks.push({ text, date });
     await user.save();
-    return res.status(200).json({ success: true, message: "Feedback inviato" });
+    return res.status(200).json({ success: true, message: "Feedback sent" });
   } catch (err) {
-    console.log(err);
-    return res.status(500).json({ error: "Errore durante l'invio del feedback", details: err.message });
+    return res.status(500).json({ error: "Error while saving feedback", details: err.message });
   }
 };
 
+/** GET: /api/users/feedbacks */
 const getAllFeedbacks = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
@@ -165,10 +171,14 @@ const getAllFeedbacks = async (req, res) => {
   }
 };
 
+/** POST: /api/users/change-password */
 const changePassword = async (req, res) => {
   try {
     /** get the user's ID from cookies */
     const userId = req.cookies.logged_user;
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
     
     /** find the user using the ID retrieved before */
     const user = await User.findOne({ id: userId });
@@ -201,15 +211,18 @@ const changePassword = async (req, res) => {
       message: "Password modified successfully"
     });
   } catch (err) {
-    console.log(err);
     return res.status(500).json({ error: "Error while changing password", details: err.message });
   }
 };
 
+/** POST: /api/users/change-district */
 const changeDistrict = async (req, res) => {
   try {
     /** get the user's ID from cookies */
     const userId = req.cookies.logged_user;
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
     
     /** find the user using the ID retrieved before */
     const user = await User.findOne({ id: userId });
@@ -237,15 +250,18 @@ const changeDistrict = async (req, res) => {
       message: "District changed successfully"
     });
   } catch (err) {
-    console.log(err);
     return res.status(500).json({ error: "Error while changing district", details: err.message });
   }
 };
 
+/** POST: /api/users/change-email */
 const changeEmail = async (req, res) => {
   try {
     /** get the user's ID from cookies */
     const userId = req.cookies.logged_user;
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
     
     /** find the user using the ID retrieved before */
     const user = await User.findOne({ id: userId });
@@ -278,14 +294,18 @@ const changeEmail = async (req, res) => {
       message: "Email modified successfully"
     });
   } catch (err) {
-    console.log(err);
     return res.status(500).json({ error: "Error while changing email", details: err.message });
   }
 };
 
+/** POST: /api/users/change-notifications */
 const changeNotifications = async (req, res) => {
   try {
     const userId = req.cookies.logged_user;
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
     const user = await User.findOne({ id: userId });
 
     if (!user) {
@@ -300,7 +320,6 @@ const changeNotifications = async (req, res) => {
     await user.save();
     return res.status(200).json({ success: true, message: "Notifications updated" });
   } catch (err) {
-    console.log(err);
     return res.status(500).json({ error: "Error while updating notifications", details: err.message });
   }
 };
@@ -353,7 +372,6 @@ const deleteUser = async (req, res) => {
   try {
     /** get the user's ID from cookies */
     const userId = req.cookies.logged_user;
-    
     if (!userId) {
       return res.status(401).json({ error: "User not authenticated" });
     }
@@ -367,7 +385,7 @@ const deleteUser = async (req, res) => {
     /** delete the user from the database */
     await User.deleteOne({ id: userId });
 
-    /** clear the authentication cookie */
+    /** clear the authentication cookies */
     res.clearCookie('logged_user');
     res.clearCookie('auth_token');
 
@@ -376,7 +394,6 @@ const deleteUser = async (req, res) => {
       message: "Account deleted successfully"
     });
   } catch (err) {
-    console.log(err);
     return res.status(500).json({ error: "Error while deleting account", details: err.message });
   }
 };

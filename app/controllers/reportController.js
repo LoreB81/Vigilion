@@ -2,21 +2,7 @@ const Report = require('../models/report.js');
 const User = require('../models/user.js');
 const districtChecker = require('../districtChecker.js');
 
-const getSingleReport = async (req, res) => {
-  try {
-    /** querying the db using the id given in the request */
-    const report = await Report.findOne({ id: req.params.id });
-
-    if (!report) {
-      return res.status(404).json({ error: "Report not found" });
-    }
-
-    return res.status(200).json(report);
-  } catch (err) {
-    return res.status(500).json({ error: "Server error", details: err.message });
-  }
-}
-
+/** GET: /api/reports */
 const getReports = async (req, res) => {
   try {
     /** querying the db without where clauses, to return all reports */
@@ -32,6 +18,7 @@ const getReports = async (req, res) => {
   }
 };
 
+/** GET: /api/reports/latest */
 const getLatestReports = async (req, res) => {
   try {
     /** find the latest 5 reports, sorted by descending createdtime */
@@ -49,6 +36,23 @@ const getLatestReports = async (req, res) => {
   }
 }
 
+/** GET: /api/reports/:id */
+const getSingleReport = async (req, res) => {
+  try {
+    /** querying the db using the id given in the request */
+    const report = await Report.findOne({ id: req.params.id });
+
+    if (!report) {
+      return res.status(404).json({ error: "Report not found" });
+    }
+
+    return res.status(200).json(report);
+  } catch (err) {
+    return res.status(500).json({ error: "Server error", details: err.message });
+  }
+}
+
+/** POST: /api/reports */
 const createReport = async (req, res) => {
   try {
     /** checking if the required parameters are given in the request body */
@@ -94,6 +98,7 @@ const createReport = async (req, res) => {
   }
 }
 
+/** POST: /api/reports/filtered */
 const getFilteredReports = async (req, res) => {
   try {
     const { startDate, endDate, district, typology } = req.body;
@@ -104,12 +109,14 @@ const getFilteredReports = async (req, res) => {
     /** add date range filter if provided */
     if (startDate || endDate) {
       query.createdtime = {};
+
       if (startDate) {
         /** convert startDate to string format "YYYY-MM-DD HH:mm" for comparison */
         const startDateStr = new Date(startDate).toISOString().slice(0, 10) + ' ' + 
                            new Date(startDate).toTimeString().slice(0, 5);
         query.createdtime.$gte = startDateStr;
       }
+
       if (endDate) {
         /** set end date to end of day (23:59) to make it inclusive */
         const endDateTime = new Date(endDate);
@@ -136,7 +143,7 @@ const getFilteredReports = async (req, res) => {
       .lean();
     
     if (!reports || reports.length === 0) {
-      return res.status(200).json({ error: "No reports found matching the criteria" });
+      return res.status(204).end();
     }
 
     /** get user data for each report */
@@ -155,6 +162,7 @@ const getFilteredReports = async (req, res) => {
   }
 }
 
+/** POST: /api/reports/by-districts */
 const getReportsByDistricts = async (req, res) => {
   try {
     const { districts } = req.body;
@@ -169,7 +177,7 @@ const getReportsByDistricts = async (req, res) => {
       .lean();
     
     if (!reports || reports.length === 0) {
-      return res.status(200).json([]);
+      return res.status(204).end();
     }
 
     return res.status(200).json(reports);

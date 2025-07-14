@@ -1,6 +1,7 @@
 const Vote = require('../models/vote.js');
 const Report = require('../models/report.js');
 
+/** POST: /api/reports/:id/vote */
 const handleVote = async (req, res) => {
   try {
     const { id } = req.params;
@@ -82,6 +83,7 @@ const handleVote = async (req, res) => {
   }
 };
 
+/** GET: /api/reports/:id/user-vote */
 const getUserVote = async (req, res) => {
   try {
     const { id } = req.params;

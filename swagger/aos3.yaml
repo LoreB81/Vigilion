@@ -25,10 +25,6 @@ components:
         - email
         - password
         - district
-        - notifications
-        - warned
-        - blocked
-        - admin
       properties:
         id:
           type: string
@@ -44,7 +40,7 @@ components:
           description: Email dell'utente
         password:
           type: string
-          description: Password associata all'utente
+          description: Password dell'utente
         district:
           type: string
           description: Circoscrizione di residenza dell'utente
@@ -80,9 +76,6 @@ components:
         - notes
         - location
         - district
-        - upvote
-        - downvote
-        - createdtime
       properties:
         id:
           type: integer
@@ -131,6 +124,8 @@ components:
           format: date-time
           description: Data ed ora del voto
   responses:
+    Created:
+      description: Risorsa creata
     NotFound:
       description: Risorsa non trovata
       content:
@@ -161,28 +156,25 @@ components:
               error:
                 type: string
                 example: Utente non autorizzato
+    ServerError:
+      description: Errore del server
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                description: Tipologia di errore
+              details:
+                type: string
+                description: Dettagli dell'errore
 
 paths:
   /authentication:
     post:
       summary: Autenticazione dell'utente
-      description: Autentica l'utente e ritorna il token JWT
-      responses:
-        '200':
-          description: Token creato
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    description: True se l'autenticazione è riuscita, false altrimenti
-                  token:
-                    type: string
-                    description: Token JWT per l'autenticazione
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+      description: Autentica l'utente e ritorna il token JWT in un cookie apposito
       requestBody:
         description: Credenziali per l'autenticazione (email e password)
         required: true
@@ -200,13 +192,30 @@ paths:
                 password:
                   type: string
                   description: Password dell'utente
+      responses:
+        "200":
+          description: Token creato e salvato nei cookie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: True se l'autenticazione è riuscita, false altrimenti
+                  token:
+                    type: string
+                    description: Token JWT per l'autenticazione
+        "404":
+          description: Utente non trovato con le credenziali fornite
+          $ref: '#/components/responses/NotFound'
 
   /authentication/logout:
     post:
       summary: Logout dell'utente
-      description: Effettua il logout dell'utente cancellando il cookie di autenticazione
+      description: Effettua il logout dell'utente cancellando il cookie di autenticazione ed il cookie contenente l'ID dell'utente
       responses:
-        '200':
+        "200":
           description: Logout effettuato con successo
           content:
             application/json:
@@ -225,7 +234,7 @@ paths:
       summary: Verifica autenticazione
       description: Verifica se l'utente è autenticato controllando il cookie di autenticazione
       responses:
-        '200':
+        "200":
           description: Stato dell'autenticazione
           content:
             application/json:
@@ -244,190 +253,12 @@ paths:
                       id:
                         type: string
                         description: ID dell'utente autenticato
-
-  /users/{id}:
-    summary: Rappresentazione di un utente
-    description: La risorsa rappresenta un utente univocamente. Ogni utente è identificato da un id.
-    get: 
-      summary: Ritorna il singolo utente
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: ID dell'utente
-      responses:
-        "200":
-          description: Singolo utente
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/User"
-        "404":
-          $ref: "#/components/responses/NotFound"
-  
-  /users/{id}/name:
-    get:
-      summary: Restituisce solo nome e cognome dell'utente
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: ID dell'utente
-      responses:
-        "200":
-          description: Nome e cognome dell'utente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  firstname:
-                    type: string
-                  lastname:
-                    type: string
-        "404":
-          $ref: "#/components/responses/NotFound"
-        "500":
-          description: Errore del server
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                  details:
-                    type: string
-
-  /users/{id}/warn:
-    patch:
-      summary: Ammonisci un utente
-      description: Permette ad un amministratore di ammonire un utente (imposta warned = true)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: ID dell'utente da ammonire
-      responses:
-        "200":
-          description: Utente ammonito con successo
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  message:
-                    type: string
-        "403":
-          description: Solo amministratori
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-        "404":
-          description: Utente non trovato
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-
-  /users/{id}/ban:
-    patch:
-      summary: Bandisci un utente
-      description: Permette ad un amministratore di bannare un utente (imposta blocked = true)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: ID dell'utente da bannare
-      responses:
-        "200":
-          description: Utente bannato con successo
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  message:
-                    type: string
-        "403":
-          description: Solo amministratori
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-        "404":
-          description: Utente non trovato
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-
-  /users/{id}/reactivate:
-    patch:
-      summary: Riattiva un utente
-      description: Permette ad un amministratore di riattivare un utente (imposta blocked = false, warned = false)
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-          description: ID dell'utente da riattivare
-      responses:
-        "200":
-          description: Utente riattivato con successo
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  message:
-                    type: string
-        "403":
-          description: Solo amministratori
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-        "404":
-          description: Utente non trovato
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
+        "400":
+          description: Token non trovato nei cookie
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Errore nella verifica del token
+          $ref: "#/components/responses/Unauthorized"
 
   /districts:
     get:
@@ -440,111 +271,15 @@ paths:
               schema:
                 type: array
         "404":
+          description: File non trovato
           $ref: "#/components/responses/NotFound"
-
-  /users:
-    summary: Rappresentazione della lista di utenti
-    description: In chiamata GET ritorna la lista di tutti gli utenti registrati, in POST crea un nuovo utente
-    get:
-      summary: Lista degli utenti
-      responses:
-        "200":
-          description: Lista degli utenti
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/User"
-    post:
-      summary: Crea un nuovo utente
-      requestBody:
-        description: Utente da creare
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/User"
-      responses:
-        "201":
-          description: Utente creato
-        "400":
-          $ref: "#/components/responses/BadRequest"
-  
-  /users/send-feedback:
-    post:
-      summary: Invia un feedback
-      description: Permette all'utente autenticato di inviare un feedback che verrà aggiunto al proprio profilo.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - text
-              properties:
-                text:
-                  type: string
-                  description: Testo del feedback
-      responses:
-        "200":
-          description: Feedback inviato con successo
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    description: True se il feedback è stato inviato
-                  message:
-                    type: string
-                    description: Messaggio di conferma
-        "400":
-          description: Testo del feedback mancante o non valido
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-        "401":
-          description: Utente non autenticato
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-        "404":
-          description: Utente non trovato
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-        "500":
-          description: Errore del server
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                  details:
-                    type: string
 
   /users/feedbacks:
     get:
       summary: Recupera la lista di feedback degli utenti
-      description: >
-        Restituisce la lista di tutti i feedback inviati dagli utenti, ciascuno con nome, cognome, testo e data di creazione, ordinati per data decrescente. È possibile filtrare i feedback tramite parametri opzionali di data inizio (startDate) e data fine (endDate) nel formato yyyy-mm-dd.
+      description:
+        Restituisce la lista di tutti i feedback inviati dagli utenti, ciascuno con nome, cognome, testo e data di creazione, ordinati per data decrescente.
+        È possibile filtrare i feedback tramite parametri opzionali di data inizio (startDate) e data fine (endDate) nel formato yyyy-mm-dd.
       parameters:
         - in: query
           name: startDate
@@ -584,21 +319,147 @@ paths:
                       format: date
                       description: Data di invio del feedback (formato yyyy-mm-dd)
         "500":
-          description: Errore del server
+          $ref: "#/components/responses/ServerError"
+
+  /users/{id}:
+    summary: Rappresentazione di un utente
+    description: La risorsa rappresenta un utente univocamente. Ogni utente è identificato da un id.
+    get: 
+      summary: Ritorna il singolo utente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: UUID dell'utente
+      responses:
+        "200":
+          description: Singolo utente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  
+  /users/{id}/name:
+    get:
+      summary: Restituisce solo nome e cognome dell'utente
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente
+      responses:
+        "200":
+          description: Nome e cognome dell'utente
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  error:
+                  firstname:
                     type: string
-                  details:
+                  lastname:
                     type: string
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /users:
+    summary: Rappresentazione della lista di utenti
+    description: In chiamata GET ritorna la lista di tutti gli utenti registrati, in POST crea un nuovo utente
+    get:
+      summary: Lista degli utenti
+      responses:
+        "200":
+          description: Lista degli utenti
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "404":
+          description: Nessun utente trovato
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+    post:
+      summary: Crea un nuovo utente
+      requestBody:
+        description: Utente da creare
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "201":
+          description: Utente creato
+          $ref: "#/components/responses/Created"
+        "400":
+          description: Email o password non valide, oppure email già utilizzata
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/ServerError"
+  
+  /users/send-feedback:
+    post:
+      summary: Invia un feedback
+      description: Permette all'utente autenticato di inviare un feedback che verrà aggiunto al proprio profilo.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  description: Testo del feedback
+      responses:
+        "200":
+          description: Feedback inviato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: True se il feedback è stato inviato
+                  message:
+                    type: string
+                    description: Messaggio di conferma
+        "400":
+          description: Testo del feedback mancante o non valido
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Utente non autenticato
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Utente non trovato
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
 
   /users/change-password:
     post:
       summary: Modifica la password dell'utente
       description: Modifica la password dell'utente autenticato, verificando prima la vecchia password
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -631,23 +492,22 @@ paths:
                     description: Messaggio di conferma
         "400":
           description: Password non valida o non corrispondente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: Messaggio di errore
+          $ref: "#/components/responses/BadRequest"
         "401":
           description: Utente non autenticato
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Utente con UUID recuperato dai cookie non trovato
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: Errore del server
+          $ref: "#/components/responses/ServerError"
 
   /users/change-district:
     post:
       summary: Modifica la circoscrizione dell'utente
       description: Modifica la circoscrizione dell'utente autenticato
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -676,23 +536,22 @@ paths:
                     description: Messaggio di conferma
         "400":
           description: Circoscrizione non valida
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: Messaggio di errore
+          $ref: "#/components/responses/BadRequest"
         "401":
           description: Utente non autenticato
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Utente con UUID recuperato dai cookie non trovato
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: Errore del server
+          $ref: "#/components/responses/ServerError"
 
   /users/change-email:
     post:
       summary: Modifica l'email dell'utente
       description: Modifica l'email dell'utente autenticato, verificando prima la vecchia email
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -725,23 +584,22 @@ paths:
                     description: Messaggio di conferma
         "400":
           description: Email non valida o non corrispondente
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: Messaggio di errore
+          $ref: "#/components/responses/BadRequest"
         "401":
           description: Utente non autenticato
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Utente con UUID recuperato dai cookie non trovato
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: Errore del server
+          $ref: "#/components/responses/ServerError"
 
   /users/change-notifications:
     post:
       summary: Modifica le circoscrizioni di notifica dell'utente
       description: Modifica le circoscrizioni per cui l'utente autenticato desidera ricevere notifiche
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -772,6 +630,43 @@ paths:
                     description: Messaggio di conferma
         "400":
           description: Parametri non validi
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Utente non autenticato
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Utente con UUID recuperato dai cookie non trovato
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /users/{id}/warn:
+    patch:
+      summary: Ammonisci un utente
+      description: Permette ad un amministratore di ammonire un utente (imposta warned = true)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente da ammonire
+      responses:
+        "200":
+          description: Utente ammonito con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "403":
+          description: Solo gli amministratori possono ammonire un utente
           content:
             application/json:
               schema:
@@ -779,16 +674,92 @@ paths:
                 properties:
                   error:
                     type: string
-                    description: Messaggio di errore
-        "401":
-          description: Utente non autenticato
-        "500":
-          description: Errore del server
+        "404":
+          description: Utente non trovato
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/ban:
+    patch:
+      summary: Bandisci un utente
+      description: Permette ad un amministratore di bannare un utente (imposta blocked = true)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente da bannare
+      responses:
+        "200":
+          description: Utente bannato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "403":
+          description: Solo gli amministratori possono bandire un utente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "404":
+          description: Utente non trovato
+          $ref: "#/components/responses/NotFound"
+
+  /users/{id}/reactivate:
+    patch:
+      summary: Riattiva un utente
+      description: Permette ad un amministratore di riattivare un utente (imposta blocked = false, warned = false)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente da riattivare
+      responses:
+        "200":
+          description: Utente riattivato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "403":
+          description: Solo gli amministratori possono riattivare un utente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        "404":
+          description: Utente non trovato
+          $ref: "#/components/responses/NotFound"
 
   /users/delete-account:
     delete:
       summary: Elimina l'account dell'utente
       description: Permette all'utente autenticato di eliminare il proprio account dal database. Le segnalazioni e i voti associati rimangono salvati.
+      security:
+        - bearerAuth: []
       responses:
         "200":
           description: Account eliminato con successo
@@ -805,37 +776,12 @@ paths:
                     description: Messaggio di conferma
         "401":
           description: Utente non autenticato
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: Messaggio di errore
+          $ref: "#/components/responses/Unauthorized"
         "404":
           description: Utente non trovato
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: Messaggio di errore
+          $ref: "#/components/responses/NotFound"
         "500":
-          description: Errore del server
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: Messaggio di errore
-                  details:
-                    type: string
-                    description: Dettagli dell'errore
+          $ref: "#/components/responses/ServerError"
 
   /reports:
     summary: Gestione delle segnalazioni
@@ -853,6 +799,7 @@ paths:
               $ref: "#/components/schemas/Report"
       responses:
         "201":
+          $ref: "#/components/responses/Created"
           description: Segnalazione creata
         "400":
           $ref: "#/components/responses/BadRequest"
@@ -871,6 +818,56 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Report"
+        "404":
+          description: Nessuna segnalazione trovata
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /reports/latest:
+    summary: Ultime 5 segnalazioni
+    description: Recupera le ultime 5 segnalazioni ordinate per data di creazione
+    get:
+      summary: Ultime 5 segnalazioni
+      responses:
+        "200":
+          description: Lista delle ultime 5 segnalazioni
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Report"
+        "404":
+          description: Nessuna segnalazione trovata
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
+
+  /reports/{id}:
+    summary: Rappresentazione di una segnalazione
+    description: La risorsa rappresenta una segnalazione univocamente.
+    get: 
+      summary: Ritorna la singola segnalazione
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID della segnalazione
+      responses:
+        "200":
+          description: Singola segnalazione
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        "404":
+          description: Segnalazione non trovata
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
 
   /reports/filtered:
     post:
@@ -907,21 +904,10 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Report"
-        "404":
-          $ref: "#/components/responses/NotFound"
+        "204":
+          description: Nessuna segnalazione trovata
         "500":
-          description: Errore del server
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: Messaggio di errore
-                  details:
-                    type: string
-                    description: Dettagli dell'errore
+          $ref: "#/components/responses/ServerError"
 
   /reports/by-districts:
     post:
@@ -950,68 +936,13 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Report"
+        "204":
+          description: Nessuna segnalazione da notificare
         "400":
           description: Parametri non validi
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: Messaggio di errore
+          $ref: "#/components/responses/BadRequest"
         "500":
-          description: Errore del server
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    description: Messaggio di errore
-                  details:
-                    type: string
-                    description: Dettagli dell'errore
-
-  /reports/latest:
-    summary: Ultime segnalazioni
-    description: Recupera le ultime 5 segnalazioni ordinate per data di creazione
-    get:
-      summary: Ultime 5 segnalazioni
-      responses:
-        "200":
-          description: Lista delle ultime 5 segnalazioni
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Report"
-        "404":
-          $ref: "#/components/responses/NotFound"
-
-  /reports/{id}:
-    summary: Rappresentazione di una segnalazione
-    description: La risorsa rappresenta una segnalazione univocamente.
-    get: 
-      summary: Ritorna la singola segnalazione
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: ID della segnalazione
-      responses:
-        "200":
-          description: Singola segnalazione
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Report"
-        "404":
-          $ref: "#/components/responses/NotFound"
+          $ref: "#/components/responses/ServerError"
 
   /reports/{id}/vote:
     post:
@@ -1039,7 +970,7 @@ paths:
                   enum: [upvote, downvote]
                   description: Tipo di voto
       responses:
-        '200':
+        "200":
           description: Voto registrato con successo
           content:
             application/json:
@@ -1056,10 +987,17 @@ paths:
                     type: string
                     enum: [upvote, downvote, null]
                     description: Voto dell'utente corrente
-        '401':
+        "400":
+          description: Tipologia di voto non valida
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          description: Utente non autenticato
           $ref: '#/components/responses/Unauthorized'
-        '404':
+        "404":
           description: Segnalazione non trovata
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/ServerError"
 
   /reports/{id}/user-vote:
     get:
@@ -1074,7 +1012,7 @@ paths:
             type: integer
           description: ID della segnalazione
       responses:
-        '200':
+        "200":
           description: Voto dell'utente
           content:
             application/json:
@@ -1085,5 +1023,8 @@ paths:
                     type: string
                     enum: [upvote, downvote, null]
                     description: Tipo di voto dell'utente
-        '401':
+        "401":
+          description: Utente non autenticato
           $ref: '#/components/responses/Unauthorized'
+        "500":
+          $ref: "#/components/responses/ServerError"
