@@ -62,7 +62,7 @@ const createReport = async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // Check if user is blocked
+    /** check if user is blocked */
     const userDoc = await User.findOne({ id: user });
     if (!userDoc) {
       return res.status(404).json({ error: "User not found" });

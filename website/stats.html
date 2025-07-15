@@ -202,7 +202,16 @@
           credentials: 'include',
           body: JSON.stringify(filters)
         });
-        let filteredReports = await filteredResp.json();
+
+        let filteredReports;
+
+        if (filteredResp.status === 204) {
+          // empty reports list if no report is retrieved
+          filteredReports = [];
+        } else {
+          filteredReports = await filteredResp.json();
+        }
+        
         if (filteredReports.error) filteredReports = [];
 
         // calculate averages

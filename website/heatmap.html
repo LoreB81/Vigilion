@@ -123,6 +123,11 @@
         body: JSON.stringify(filters)
       });
 
+      if (response.status === 204) {
+        // return empty array if no reports are retrieved
+        return [];
+      }
+
       if (!response.ok) {
         throw new Error('Failed to fetch reports');
       }
