@@ -43,6 +43,7 @@ components:
           description: Password dell'utente
         district:
           type: string
+          enum: [Gardolo, Meano, Bondone, Sardagna, Ravina-Romagnano, Argentario, Povo, Mattarello, Villazzano, Oltrefersina, San Giuseppe-Santa Chiara, Centro Storico-Piedicastello]
           description: Circoscrizione di residenza dell'utente
         notifications:
           type: array
@@ -93,6 +94,10 @@ components:
         location:
           type: string
           description: Posizione della segnalazione (latitudine/longitudine)
+        district:
+          type: string
+          enum: [Gardolo, Meano, Bondone, Sardagna, Ravina-Romagnano, Argentario, Povo, Mattarello, Villazzano, Oltrefersina, San Giuseppe-Santa Chiara, Centro Storico-Piedicastello]
+          description: Circoscrizione in cui la segnalazione è stata effettuata
         upvote:
           type: integer
           description: Numero di upvote ricevuti
